@@ -1,12 +1,30 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(liboscar)
+
+set(CMAKE_MODULE_PATH
+${CMAKE_SOURCE_DIR}/cmake/
+${CMAKE_SOURCE_DIR}/vendor/sserialize/cmake/
+)
+
+INCLUDE(AddTargetProperties)
+
+set(MY_C_FLAGS "-std=c99")
+set(MY_CXX_FLAGS "-std=gnu++0x")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MY_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MY_CXX_FLAGS}")
+
 include_directories(
 ${CMAKE_SOURCE_DIR}
 ${CMAKE_CURRENT_BINARY_DIR}
 ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_CURRENT_SOURCE_DIR}/include/
+${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/include/
 )
 find_package(LIBRT REQUIRED)
+
+add_subdirectory(vendor/sserialize sserialize)
+add_target_properties(sserialize COMPILE_FLAGS -fPIC)
 
 set(LIBOSCAR_SOURCES_CPP
 src/StaticOsmCompleter.cpp
@@ -23,7 +41,6 @@ src/CQRFromPolygon.cpp
 src/CQRFromComplexSpatialQuery.cpp
 )
 
-add_target_properties(sserialize COMPILE_FLAGS -fPIC)
 
 SET(LIBOSCAR_LINK_LIBS
 	${sserialize_BINARY_DIR}/libsserialize.a
