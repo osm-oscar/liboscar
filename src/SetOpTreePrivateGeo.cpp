@@ -1,4 +1,4 @@
-#include "SetOpTreePrivateGeo.h"
+#include <liboscar/SetOpTreePrivateGeo.h>
 #include <sserialize/containers/ItemIndex.h>
 
 namespace liboscar {

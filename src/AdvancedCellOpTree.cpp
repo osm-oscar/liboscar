@@ -1,4 +1,4 @@
-#include "AdvancedCellOpTree.h"
+#include <liboscar/AdvancedCellOpTree.h>
 
 namespace liboscar {
 namespace detail {

@@ -1,4 +1,4 @@
-#include "CellOpTree.h"
+#include <liboscar/CellOpTree.h>
 #include <sserialize/strings/stringfunctions.h>
 
 namespace liboscar {

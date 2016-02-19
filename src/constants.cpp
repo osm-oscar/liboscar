@@ -1,4 +1,4 @@
-#include "constants.h"
+#include <liboscar/constants.h>
 #include <sserialize/storage/MmappedFile.h>
 
 namespace liboscar {

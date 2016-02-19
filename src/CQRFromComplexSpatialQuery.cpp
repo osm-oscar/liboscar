@@ -1,4 +1,4 @@
-#include "CQRFromComplexSpatialQuery.h"
+#include <liboscar/CQRFromComplexSpatialQuery.h>
 #include <sserialize/spatial/LatLonCalculations.h>
 
 //CGAL stuff

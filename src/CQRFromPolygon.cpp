@@ -1,4 +1,4 @@
-#include "CQRFromPolygon.h"
+#include <liboscar/CQRFromPolygon.h>
 
 namespace liboscar {
 

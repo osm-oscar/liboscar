@@ -1,4 +1,4 @@
-#include "tagcompleters.h"
+#include <liboscar/tagcompleters.h>
 #include <sserialize/strings/stringfunctions.h>
 #include <sserialize/strings/unicode_case_functions.h>
 #include <sserialize/utility/log.h>

@@ -1,4 +1,4 @@
-#include "StaticTagStore.h"
+#include <liboscar/StaticTagStore.h>
 #include <sserialize/Static/TreeNode.h>
 
 namespace liboscar {

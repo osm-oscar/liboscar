@@ -1,4 +1,4 @@
-#include "OsmKeyValueObjectStore.h"
+#include <liboscar/OsmKeyValueObjectStore.h>
 #include <sserialize/utility/exceptions.h>
 #include <sserialize/Static/GeoWay.h>
 #include <sserialize/Static/GeoMultiPolygon.h>
