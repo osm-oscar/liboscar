@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 project(liboscar)
 
 set(CMAKE_MODULE_PATH
-${CMAKE_SOURCE_DIR}/cmake/
-${CMAKE_SOURCE_DIR}/vendor/sserialize/cmake/
+${CMAKE_CURRENT_SOURCE_DIR}/cmake/
+${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/cmake/
 )
 
 INCLUDE(AddTargetProperties)
@@ -21,6 +21,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_CURRENT_SOURCE_DIR}/include/
 ${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/include/
 )
+
 find_package(LIBRT REQUIRED)
 
 add_subdirectory(vendor/sserialize sserialize)
