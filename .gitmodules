@@ -1,0 +1,3 @@
+[submodule "vendor/sserialize"]
+	path = vendor/sserialize
+	url = https://github.com/dbahrdt/sserialize.git
