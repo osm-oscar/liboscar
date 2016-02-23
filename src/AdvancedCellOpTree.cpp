@@ -313,6 +313,7 @@ detail::AdvancedCellOpTree::Node* Parser::parseUnaryOps() {
 	switch (t.type) {
 	case Token::CELL_DILATION_OP:
 		nst = Node::CELL_DILATION_OP;
+		break;
 	case Token::REGION_DILATION_OP:
 		nst = Node::REGION_DILATION_OP;
 		break;
