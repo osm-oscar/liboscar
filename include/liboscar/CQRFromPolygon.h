@@ -209,7 +209,7 @@ struct PolyCellItemIntersectOp: public PolyCellItemIntersectBaseOp<PolyCellItemI
 		case sserialize::spatial::GS_WAY:
 			return sgp.intersects(*gs.get<sserialize::Static::spatial::GeoWay>());
 		case sserialize::spatial::GS_POLYGON:
-			return sgp.intersects(*gs.get<sserialize::Static::spatial::GeoWay>());
+			return sgp.intersects(*gs.get<sserialize::Static::spatial::GeoPolygon>());
 		case sserialize::spatial::GS_MULTI_POLYGON:
 			return gs.get<sserialize::Static::spatial::GeoMultiPolygon>()->intersects(sgp);
 		default:
