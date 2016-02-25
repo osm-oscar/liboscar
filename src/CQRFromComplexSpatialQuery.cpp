@@ -716,10 +716,20 @@ uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const SubSet & subSet
 			}
 			break;
 		}
+		case sserialize::spatial::GS_MULTI_POLYGON:
+		{
+			double tmp = store().geoShape(itemId).boundary().diagInM();
+			if (resDiag < tmp) {
+				resId = itemId;
+				resDiag = tmp;
+			}
+			break;
+		}
 		default:
 			break;
 		};
 	}
+	SSERIALIZE_CHEAP_ASSERT_NOT_EQUAL(resId, liboscar::Static::OsmKeyValueObjectStore::npos);
 	return resId;
 }
 
