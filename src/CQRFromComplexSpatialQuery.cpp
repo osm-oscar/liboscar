@@ -364,7 +364,7 @@ createPolygon(
 {
 	double len = way.length();
 	sserialize::spatial::GeoRect wayRect(way.boundary());
-	//determine a point that is northest, southest etc. as midpoint and the nuse the createPolygon from Point function
+	//determine a point that is northest, southest etc. as midpoint and then use the createPolygon from Point function
 	//to add the triangle in the view direction and then use the convex hull of this and the original way to create the final polygon
 	sserialize::spatial::GeoPoint refPoint;
 	switch (direction) {
