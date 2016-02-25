@@ -7,6 +7,8 @@
 namespace liboscar {
 namespace Static {
 
+constexpr uint32_t OsmKeyValueObjectStore::npos;
+
 OsmKeyValueObjectStore::OsmKeyValueObjectStore(OsmKeyValueObjectStorePrivate * data): MyBaseClass(data) {}
 
 OsmKeyValueObjectStore::OsmKeyValueObjectStore() : 
