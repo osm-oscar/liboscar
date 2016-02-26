@@ -280,11 +280,18 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 			gp.emplace_back(*it, *(it+1));
 		}
 		sserialize::spatial::GeoWay gw(gp);
-		if (gw.length() < 100*1000) { //less than a hundred kilometers long
+		double gwLen = gw.length();
+		if (radius > 0.0 && gwLen < 5*1000 && radius < 5000) {
 			return m_ctc.cqrAlongPath<CQRType>(radius, gp.begin(), gp.end());
 		}
 		else {
-			return CQRType(m_cqrd.dilate(m_ctc.cqrAlongPath<sserialize::CellQueryResult>(0.0, gp.begin(), gp.end()), radius), gh(), idxStore());
+			auto tmp = m_ctc.cqrAlongPath<sserialize::CellQueryResult>(0.0, gp.begin(), gp.end());
+			if (radius > 0.0) {
+				return CQRType(m_cqrd.dilate(tmp, radius), gh(), idxStore()) + CQRType(tmp);
+			}
+			else {
+				return CQRType(tmp);
+			}
 		}
 	}
 }
