@@ -211,11 +211,18 @@ Token Tokenizer::next() {
 					++m_state.it;
 				}
 			}
+			bool opSeparates = true;
 			if (tmp == "region") {
 				t.type = Token::REGION;
+				opSeparates = true;
 			}
 			else if (tmp == "cell") {
 				t.type = Token::CELL;
+				opSeparates = true;
+			}
+			else if (tmp  == "item") {
+				t.type = Token::ITEM;
+				opSeparates = true;
 			}
 			else if (tmp == "geo") {
 				t.type = Token::GEO_RECT;
@@ -226,11 +233,8 @@ Token Tokenizer::next() {
 			else if (tmp == "path") {
 				t.type = Token::GEO_PATH;
 			}
-			else if (tmp  == "item") {
-				t.type = Token::ITEM;
-			}
 			for(; m_state.it != m_state.end;) {
-				if (isWhiteSpace(*m_state.it) || isOperator(*m_state.it) || isScope(*m_state.it)) {
+				if (isWhiteSpace(*m_state.it) || (opSeparates && isOperator(*m_state.it)) || isScope(*m_state.it)) {
 					break;
 				}
 				else {
