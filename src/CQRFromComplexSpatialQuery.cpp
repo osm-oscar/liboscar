@@ -704,18 +704,7 @@ uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const SubSet & subSet
 			break;
 		}
 		case sserialize::spatial::GS_WAY:
-		{
-			return itemId;
-		}
 		case sserialize::spatial::GS_POLYGON:
-		{
-			double tmp = store().geoShape(itemId).boundary().diagInM();
-			if (resDiag < tmp) {
-				resId = itemId;
-				resDiag = tmp;
-			}
-			break;
-		}
 		case sserialize::spatial::GS_MULTI_POLYGON:
 		{
 			double tmp = store().geoShape(itemId).boundary().diagInM();
