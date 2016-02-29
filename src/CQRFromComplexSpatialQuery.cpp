@@ -419,7 +419,18 @@ createPolygon(
 	liboscar::CQRFromComplexSpatialQuery::UnaryOp direction,
 	std::vector< sserialize::spatial::GeoPoint >& pp) const
 {
-	double inDirectionScale = 2.0; //in direction of compass
+	double inDirectionScale = 2.0;
+	double rD = rect.diagInM();
+	if (rD < 100) {
+		inDirectionScale = 10.0;
+	}
+	else if (rD < 1000) {
+		inDirectionScale = 2.0 + 8.0*(1000.0-rD)/1000.0;
+	}
+	else {
+		inDirectionScale = 2.0;
+	}
+// 	 = 2.0 + std::max<double>(0.0, 11.0-0.1*rect.diagInM()); //in direction of compass
 	double orthoToDirectionScale = 0.5; //orthogonal to compass direction
 
 	double latDist = rect.maxLat() - rect.minLat();
