@@ -211,7 +211,7 @@ Token Tokenizer::next() {
 					++m_state.it;
 				}
 			}
-			bool opSeparates = true;
+			bool opSeparates = false;
 			if (tmp == "region") {
 				t.type = Token::REGION;
 				opSeparates = true;
