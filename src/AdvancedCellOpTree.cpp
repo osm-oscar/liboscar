@@ -563,15 +563,16 @@ AdvancedCellOpTree::~AdvancedCellOpTree() {
 }
 
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcBetweenOp(const sserialize::CellQueryResult& c1, const sserialize::CellQueryResult& c2) {
+#ifdef SSERIALIZE_EXPENSIVE_ASSERT_ENABLED
 	auto tmp = m_csq.betweenOp(c1, c2);
 	for(const sserialize::ItemIndex & x : tmp) {
-		assert(std::is_sorted(x.begin(), x.end()));
-		assert(sserialize::is_strong_monotone_ascending(x.begin(), x.end()));
+		SSERIALIZE_EXPENSIVE_ASSERT(std::is_sorted(x.begin(), x.end()));
+		SSERIALIZE_EXPENSIVE_ASSERT(sserialize::is_strong_monotone_ascending(x.begin(), x.end()));
 		for(uint32_t y : x) {
 			if (y == 16800296) {
 				std::cout << "BAM" << std::endl;
 			}
-			assert(y != 16800296);
+			SSERIALIZE_EXPENSIVE_ASSERT_NOT_EQUAL(y, 16800296);
 		}
 	}
 	sserialize::ItemIndex tmp2 =  tmp.flaten();
@@ -579,9 +580,12 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcBetweenOp(const ss
 		if (y == 16800296) {
 			std::cout << "BAM" << std::endl;
 		}
-		assert(y != 16800296);
+		SSERIALIZE_EXPENSIVE_ASSERT_NOT_EQUAL(y, 16800296);
 	}
 	return tmp;
+#else
+	return m_csq.betweenOp(c1, c2);
+#endif
 }
 
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcCompassOp(liboscar::AdvancedCellOpTree::Node* node, const sserialize::CellQueryResult& cqr) {
