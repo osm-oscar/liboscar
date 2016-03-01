@@ -244,39 +244,23 @@ inline std::ostream & operator<<(std::ostream & out, const liboscar::Static::Osm
 
 sserialize::CellQueryResult OsmCompleter::cqrComplete(const std::string& query, bool treedCQR) {
 	if (!m_textSearch.hasSearch(liboscar::TextSearch::Type::GEOCELL)) {
-		std::cout << "No support fo clustered completion available" << std::endl;
-		return sserialize::CellQueryResult();
+		throw sserialize::UnsupportedFeatureException("OsmCompleter::cqrComplete data has no CellTextCompleter");
 	}
 	sserialize::Static::CellTextCompleter cmp( m_textSearch.get<liboscar::TextSearch::Type::GEOCELL>() );
-	
-	std::cout << "BEGIN: CLUSTERED COMPLETE" << std::endl;
-	
-	sserialize::CellQueryResult r;
-	
-	sserialize::TimeMeasurer tm;
-	tm.begin();
 	sserialize::Static::CQRDilator cqrd(store().cellCenterOfMass(), store().cellGraph());
 	CQRFromPolygon cqrfp(store(), indexStore());
 	sserialize::spatial::GeoHierarchySubSetCreator ghs(store().geoHierarchy(), sserialize::spatial::GeoHierarchySubSetCreator::T_PASS_THROUGH);
 	CQRFromComplexSpatialQuery csq(ghs, cqrfp);
 	if (!treedCQR) {
-// 		CellOpTree<sserialize::CellQueryResult> opTree(cmp, true);
 		AdvancedCellOpTree opTree(cmp, cqrd, csq);
 		opTree.parse(query);
-		r = opTree.calc<sserialize::CellQueryResult>();
+		return opTree.calc<sserialize::CellQueryResult>();
 	}
 	else {
-// 		CellOpTree<sserialize::TreedCellQueryResult> opTree(cmp, true);
 		AdvancedCellOpTree opTree(cmp, cqrd, csq);
 		opTree.parse(query);
-		r = opTree.calc<sserialize::TreedCellQueryResult>().toCQR();
+		return opTree.calc<sserialize::TreedCellQueryResult>().toCQR();
 	}
-	tm.end();
-	std::cout << "Completion of " << query << " took " << tm.elapsedUseconds() << " usecs" << std::endl;
-	#ifdef DEBUG_CHECK_ALL
-	std::cout << r << std::endl;
-	#endif
-	return r;
 }
 
 sserialize::Static::spatial::GeoHierarchy::SubSet
