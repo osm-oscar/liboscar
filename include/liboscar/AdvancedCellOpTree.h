@@ -318,11 +318,16 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcItem(AdvancedCellOpTree::Node * node) 
 	if (!item.valid()) {
 		return CQRType();
 	}
-	auto itemCells( item.cells() );
 	sserialize::ItemIndex idx(std::vector<uint32_t>(1, id));
-	sserialize::ItemIndex pmIdx(std::vector<uint32_t>(itemCells.begin(), itemCells.end()));
+	sserialize::ItemIndex pmIdx;
+	if (item.isRegion()) {
+		pmIdx = idxStore().at( gh().regionCellIdxPtr( gh().storeIdToGhId(item.id()) ) );
+	}
+	else {
+		auto itemCells( item.cells() );
+		pmIdx = sserialize::ItemIndex(std::vector<uint32_t>(itemCells.begin(), itemCells.end()));
+	}
 	std::vector<sserialize::ItemIndex> cellIdx(pmIdx.size(), idx);
-	
 	return CQRType(sserialize::ItemIndex(), pmIdx, cellIdx.begin(), gh(), idxStore());
 }
 
