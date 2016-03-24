@@ -242,7 +242,12 @@ inline std::ostream & operator<<(std::ostream & out, const liboscar::Static::Osm
 	return out;
 }
 
-sserialize::CellQueryResult OsmCompleter::cqrComplete(const std::string& query, bool treedCQR) {
+sserialize::CellQueryResult
+OsmCompleter::cqrComplete(
+	const std::string& query,
+	bool treedCQR,
+	uint32_t threadCount)
+{
 	if (!m_textSearch.hasSearch(liboscar::TextSearch::Type::GEOCELL)) {
 		throw sserialize::UnsupportedFeatureException("OsmCompleter::cqrComplete data has no CellTextCompleter");
 	}
@@ -259,18 +264,30 @@ sserialize::CellQueryResult OsmCompleter::cqrComplete(const std::string& query, 
 	else {
 		AdvancedCellOpTree opTree(cmp, cqrd, csq);
 		opTree.parse(query);
-		return opTree.calc<sserialize::TreedCellQueryResult>().toCQR();
+		return opTree.calc<sserialize::TreedCellQueryResult>().toCQR(threadCount);
 	}
 }
 
 sserialize::Static::spatial::GeoHierarchy::SubSet
-OsmCompleter::clusteredComplete(const std::string& query, const sserialize::spatial::GeoHierarchySubSetCreator & ghs, uint32_t minCq4SparseSubSet, bool treedCQR) {
-	sserialize::CellQueryResult r = cqrComplete(query, treedCQR);
+OsmCompleter::clusteredComplete(
+	const std::string& query,
+	const sserialize::spatial::GeoHierarchySubSetCreator & ghs,
+	uint32_t minCq4SparseSubSet,
+	bool treedCQR,
+	uint32_t threadCount)
+{
+	sserialize::CellQueryResult r = cqrComplete(query, treedCQR, threadCount);
 	return ghs.subSet(r, r.cellCount() > minCq4SparseSubSet);
 }
 
-sserialize::Static::spatial::GeoHierarchy::SubSet OsmCompleter::clusteredComplete(const std::string& query, uint32_t minCq4SparseSubSet, bool treedCQR) {
-	sserialize::CellQueryResult r = cqrComplete(query, treedCQR);
+sserialize::Static::spatial::GeoHierarchy::SubSet
+OsmCompleter::clusteredComplete(
+	const std::string& query,
+	uint32_t minCq4SparseSubSet,
+	bool treedCQR,
+	uint32_t threadCount)
+{
+	sserialize::CellQueryResult r = cqrComplete(query, treedCQR, threadCount);
 	const sserialize::Static::spatial::GeoHierarchy * gh = &store().geoHierarchy();
 	
 	if (m_store.geoHierarchy().cellSize() >= MEMORY_BASED_SUBSET_CREATOR_MIN_CELL_COUNT) {
