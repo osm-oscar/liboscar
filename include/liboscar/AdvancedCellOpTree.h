@@ -238,7 +238,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPolygon(AdvancedCellOpTree::Node* node
 		return T_CQR_TYPE();
 	}
 	//check if back and front are the same, if not, close the polygon:
-	if (gps.back() != gps.front()) {
+	if (!sserialize::spatial::equal(gps.back(), gps.front(), 0.0)) {
 		gps.push_back(gps.front());
 	}
 	
