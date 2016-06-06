@@ -216,6 +216,10 @@ Token Tokenizer::next() {
 				t.type = Token::REGION;
 				opSeparates = true;
 			}
+			else if (tmp == "rec") {
+				t.type = Token::REGION_EXCLUSIVE_CELLS;
+				opSeparates = true;
+			}
 			else if (tmp == "cell") {
 				t.type = Token::CELL;
 				opSeparates = true;
@@ -386,6 +390,12 @@ detail::AdvancedCellOpTree::Node* Parser::parseSingleQ() {
 	{
 		pop();
 		return new Node(Node::LEAF, Node::REGION, t.value);
+		break;
+	}
+	case Token::REGION_EXCLUSIVE_CELLS:
+	{
+		pop();
+		return new Node(Node::LEAF, Node::REGION_EXCLUSIVE_CELLS, t.value);
 		break;
 	}
 	case Token::GEO_PATH:

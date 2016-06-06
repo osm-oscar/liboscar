@@ -22,12 +22,13 @@
   * COMPASS_OP := :^ | :v | :> | :< | :north-of | :east-of | :south-of | :west-of
   * BETWEEN_OP := <->
   * BINARY_OP := - | + | / | ^ 
-  * ITEM := $item:id
+  * ITEM := $item:<itemId>
   * GEO_RECT := $geo[]
   * POLYGON := $poly[]
   * GEO_PATH := $path[]
-  * REGION := $region:id
-  * CELL := $cell:id
+  * REGION := $region:<regionId>
+  * REGION_EXCLUSIVE_CELLS := $rec:<regionId>
+  * CELL := $cell:<cellId>
   */
 namespace liboscar {
 namespace detail {
@@ -38,7 +39,7 @@ struct Node {
 	enum OpType : int {
 		FM_CONVERSION_OP, CELL_DILATION_OP, REGION_DILATION_OP, COMPASS_OP,
 		SET_OP, BETWEEN_OP,
-		RECT, POLYGON, PATH, REGION, CELL, STRING, ITEM
+		RECT, POLYGON, PATH, REGION, REGION_EXCLUSIVE_CELLS, CELL, STRING, ITEM
 	};
 	int baseType;
 	int subType;
@@ -72,6 +73,7 @@ struct Token {
 		GEO_POLYGON,
 		GEO_PATH,
 		REGION,
+		REGION_EXCLUSIVE_CELLS,
 		CELL,
 		STRING,
 		ITEM
@@ -172,6 +174,7 @@ private:
 		CQRType calcRect(Node * node);
 		CQRType calcPolygon(Node * node);
 		CQRType calcPath(Node * node);
+		CQRType calcRegionExclusiveCells(Node * node);
 		CQRType calcRegion(Node * node);
 		CQRType calcCell(Node * node);
 		CQRType calcUnaryOp(Node * node);
@@ -301,6 +304,13 @@ T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegion(AdvancedCellOpTree::Node * node) {
 	uint32_t id = atoi(node->value.c_str());
 	return m_ctc.cqrFromRegionStoreId<CQRType>(id);
+}
+
+template<typename T_CQR_TYPE>
+T_CQR_TYPE
+AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegionExclusiveCells(AdvancedCellOpTree::Node * node) {
+	uint32_t regionId = atoi(node->value.c_str());
+	return m_ctc.regionExclusiveCells<CQRType>(regionId);
 }
 
 template<typename T_CQR_TYPE>
@@ -435,6 +445,8 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 			return calcString(node);
 		case Node::REGION:
 			return calcRegion(node);
+		case Node::REGION_EXCLUSIVE_CELLS:
+			return calcRegionExclusiveCells(node);
 		case Node::CELL:
 			return calcCell(node);
 		case Node::RECT:
