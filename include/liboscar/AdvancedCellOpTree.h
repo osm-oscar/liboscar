@@ -27,9 +27,9 @@
   * GEO_RECT := $geo:<rect-defintion>
   * POLYGON := $poly[]
   * GEO_PATH := $path[]
-  * REGION := $region:<regionId>
-  * REGION_EXCLUSIVE_CELLS := $rec:<regionId>
-  * CONSTRAINED_REGION_EXCLUSIVE_CELLS := $crec:<regionId>,<rect-definition>
+  * REGION := $region:<storeId>
+  * REGION_EXCLUSIVE_CELLS := $rec:<storeId>
+  * CONSTRAINED_REGION_EXCLUSIVE_CELLS := $crec:<storeId>,<rect-definition>
   * CELL := $cell:<cellId>
   */
 namespace liboscar {
@@ -326,8 +326,9 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegion(AdvancedCellOpTree::Node * node
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegionExclusiveCells(AdvancedCellOpTree::Node * node) {
-	uint32_t regionId = atoi(node->value.c_str());
-	sserialize::ItemIndex idx = ghsg().regionExclusiveCells(regionId);
+	uint32_t storeId = atoi(node->value.c_str());
+	uint32_t ghId = gh().storeIdToGhId(storeId);
+	sserialize::ItemIndex idx = ghsg().regionExclusiveCells(ghId);
 	return CQRType(idx, gh(), idxStore());
 }
 
