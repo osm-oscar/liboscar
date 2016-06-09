@@ -1,7 +1,7 @@
 #ifndef LIBOSCAR_CQR_FROM_COMPLEX_SPATIAL_QUERY_H
 #define LIBOSCAR_CQR_FROM_COMPLEX_SPATIAL_QUERY_H
 #include <sserialize/spatial/CellQueryResult.h>
-#include <sserialize/Static/GeoHierarchySubSetCreator.h>
+#include <sserialize/Static/GeoHierarchySubGraph.h>
 #include "CQRFromPolygon.h"
 
 namespace liboscar {
@@ -17,7 +17,7 @@ public:
 	enum BinaryOp : uint32_t {BO_INVALID=0, BO_BETWEEN};
 public:
 	CQRFromComplexSpatialQuery(const CQRFromComplexSpatialQuery & other);
-	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubSetCreator & ssc, const CQRFromPolygon & cqrfp);
+	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph & ssc, const CQRFromPolygon & cqrfp);
 	~CQRFromComplexSpatialQuery();
 	sserialize::CellQueryResult compassOp(const sserialize::CellQueryResult & cqr, UnaryOp direction) const;
 	sserialize::CellQueryResult betweenOp(const sserialize::CellQueryResult & cqr1, const sserialize::CellQueryResult & cqr2) const;
@@ -32,7 +32,7 @@ class CQRFromComplexSpatialQuery: public sserialize::RefCountObject {
 public:
 	typedef sserialize::Static::spatial::GeoHierarchy::SubSet SubSet;
 public:
-	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubSetCreator& ssc, const liboscar::CQRFromPolygon& cqrfp);
+	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph& ssc, const liboscar::CQRFromPolygon& cqrfp);
 	virtual ~CQRFromComplexSpatialQuery();
 	sserialize::CellQueryResult compassOp(const sserialize::CellQueryResult& cqr, liboscar::CQRFromComplexSpatialQuery::UnaryOp direction) const;
 	sserialize::CellQueryResult betweenOp(const sserialize::CellQueryResult & cqr1, const sserialize::CellQueryResult & cqr2) const;
@@ -64,7 +64,7 @@ private: //accessor function
 	const sserialize::Static::spatial::GeoHierarchy & geoHierarchy() const;
 	const sserialize::Static::ItemIndexStore & idxStore() const;
 private:
-	sserialize::spatial::GeoHierarchySubSetCreator m_ssc;
+	sserialize::spatial::GeoHierarchySubGraph m_ssc;
 	liboscar::CQRFromPolygon m_cqrfp;
 	uint32_t m_itemQueryItemCountTh;
 	uint32_t m_itemQueryCellCountTh;

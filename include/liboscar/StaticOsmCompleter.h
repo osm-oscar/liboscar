@@ -10,7 +10,7 @@
 #include <sserialize/Static/CellTextCompleter.h>
 #include <sserialize/search/GeoCompleter.h>
 #include <sserialize/spatial/GeoConstraintSetOpTreeEF.h>
-#include <sserialize/Static/GeoHierarchySubSetCreator.h>
+#include <sserialize/Static/GeoHierarchySubGraph.h>
 
 namespace liboscar {
 namespace Static {
@@ -36,7 +36,7 @@ private:
 	std::vector<sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter> > m_geoCompleters;
 	///maps from TextSearch::Type->(Position, StringCompleter)
 	uint8_t m_selectedGeoCompleter;
-	sserialize::spatial::GeoHierarchySubSetCreator m_ghs;
+	sserialize::spatial::GeoHierarchySubGraph m_ghs;
 	
 private:
 	sserialize::RCPtrWrapper<TagCompleter> m_tagCompleter;
@@ -84,7 +84,7 @@ public:
 	Static::OsmItemSetIterator partialComplete(const std::string& query, const sserialize::spatial::GeoRect & rect = sserialize::spatial::GeoRect());
 	///@param threadCount: the number of threads used to flatten a TreedCQR
 	sserialize::CellQueryResult cqrComplete(const std::string & query, bool treedCQR = false, uint32_t threadCount = 1);
-	sserialize::Static::spatial::GeoHierarchy::SubSet clusteredComplete(const std::string& query, const sserialize::spatial::GeoHierarchySubSetCreator & ghs, uint32_t minCq4SparseSubSet, bool treedCQR = false, uint32_t threadCount = 1);
+	sserialize::Static::spatial::GeoHierarchy::SubSet clusteredComplete(const std::string& query, const sserialize::spatial::GeoHierarchySubGraph & ghs, uint32_t minCq4SparseSubSet, bool treedCQR = false, uint32_t threadCount = 1);
 	sserialize::Static::spatial::GeoHierarchy::SubSet clusteredComplete(const std::string& query, uint32_t minCq4SparseSubSet, bool treedCQR = false, uint32_t threadCount = 1);
 	Static::TagStore tagStore() const;
 };

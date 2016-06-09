@@ -8,7 +8,7 @@
 
 namespace liboscar {
 
-CQRFromComplexSpatialQuery::CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubSetCreator & ssc, const CQRFromPolygon & cqrfp) :
+CQRFromComplexSpatialQuery::CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph & ssc, const CQRFromPolygon & cqrfp) :
 m_priv(new detail::CQRFromComplexSpatialQuery(ssc, cqrfp))
 {}
 
@@ -32,7 +32,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 
 namespace detail {
 
-CQRFromComplexSpatialQuery::CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubSetCreator & ssc, const liboscar::CQRFromPolygon & cqrfp) :
+CQRFromComplexSpatialQuery::CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph & ssc, const liboscar::CQRFromPolygon & cqrfp) :
 m_ssc(ssc),
 m_cqrfp(cqrfp),
 m_itemQueryItemCountTh(20),
