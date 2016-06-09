@@ -559,10 +559,16 @@ detail::AdvancedCellOpTree::Node* Parser::parse(const std::string & str) {
 
 }}}//end namespace detail::AdvancedCellOpTree::parser
 
-AdvancedCellOpTree::AdvancedCellOpTree(const sserialize::Static::CellTextCompleter & ctc, const sserialize::Static::CQRDilator & cqrd, const CQRFromComplexSpatialQuery & csq) :
+AdvancedCellOpTree::
+AdvancedCellOpTree(
+	const sserialize::Static::CellTextCompleter & ctc,
+	const sserialize::Static::CQRDilator & cqrd,
+	const CQRFromComplexSpatialQuery & csq,
+	const sserialize::spatial::GeoHierarchySubGraph & ghsg) :
 m_ctc(ctc),
 m_cqrd(cqrd),
 m_csq(csq),
+m_ghsg(ghsg),
 m_root(0)
 {}
 
@@ -665,6 +671,10 @@ const sserialize::Static::ItemIndexStore& AdvancedCellOpTree::CalcBase::idxStore
 
 const liboscar::Static::OsmKeyValueObjectStore & AdvancedCellOpTree::CalcBase::store() const {
 	return m_csq.cqrfp().store();
+}
+
+const sserialize::spatial::GeoHierarchySubGraph & AdvancedCellOpTree::CalcBase::ghsg() const {
+	return m_ghsg;
 }
 
 void AdvancedCellOpTree::parse(const std::string& str) {

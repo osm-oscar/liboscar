@@ -228,9 +228,11 @@ void OsmCompleter::energize() {
 		m_tagPhraseCompleter = sserialize::RCPtrWrapper<TagPhraseCompleter>( new TagPhraseCompleter() );
 	}
 
+	sserialize::spatial::GeoHierarchySubGraph::Type ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_PASS_THROUGH;
 	if (m_store.geoHierarchy().cellSize() >= MEMORY_BASED_SUBSET_CREATOR_MIN_CELL_COUNT) {
-		m_ghs = sserialize::spatial::GeoHierarchySubGraph(m_store.geoHierarchy(), indexStore());
+		ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_IN_MEMORY;
 	}
+	m_ghsg = sserialize::spatial::GeoHierarchySubGraph(m_store.geoHierarchy(), indexStore(), ghsgType);
 }
 
 void processCompletionToken(std::string & q, sserialize::StringCompleter::QuerryType & qt) {
@@ -245,6 +247,7 @@ inline std::ostream & operator<<(std::ostream & out, const liboscar::Static::Osm
 sserialize::CellQueryResult
 OsmCompleter::cqrComplete(
 	const std::string& query,
+	const sserialize::spatial::GeoHierarchySubGraph & ghsg,
 	bool treedCQR,
 	uint32_t threadCount)
 {
@@ -254,30 +257,38 @@ OsmCompleter::cqrComplete(
 	sserialize::Static::CellTextCompleter cmp( m_textSearch.get<liboscar::TextSearch::Type::GEOCELL>() );
 	sserialize::Static::CQRDilator cqrd(store().cellCenterOfMass(), store().cellGraph());
 	CQRFromPolygon cqrfp(store(), indexStore());
-	sserialize::spatial::GeoHierarchySubGraph ghs(store().geoHierarchy(), indexStore(), sserialize::spatial::GeoHierarchySubGraph::T_PASS_THROUGH);
-	CQRFromComplexSpatialQuery csq(ghs, cqrfp);
+	CQRFromComplexSpatialQuery csq(ghsg, cqrfp);
 	if (!treedCQR) {
-		AdvancedCellOpTree opTree(cmp, cqrd, csq);
+		AdvancedCellOpTree opTree(cmp, cqrd, csq, ghsg);
 		opTree.parse(query);
 		return opTree.calc<sserialize::CellQueryResult>();
 	}
 	else {
-		AdvancedCellOpTree opTree(cmp, cqrd, csq);
+		AdvancedCellOpTree opTree(cmp, cqrd, csq, ghsg);
 		opTree.parse(query);
 		return opTree.calc<sserialize::TreedCellQueryResult>().toCQR(threadCount);
 	}
 }
 
+sserialize::CellQueryResult
+OsmCompleter::cqrComplete(
+	const std::string& query,
+	bool treedCQR,
+	uint32_t threadCount)
+{
+	this->cqrComplete(query, m_ghsg, treedCQR, threadCount);
+}
+
 sserialize::Static::spatial::GeoHierarchy::SubSet
 OsmCompleter::clusteredComplete(
 	const std::string& query,
-	const sserialize::spatial::GeoHierarchySubGraph & ghs,
+	const sserialize::spatial::GeoHierarchySubGraph & ghsg,
 	uint32_t minCq4SparseSubSet,
 	bool treedCQR,
 	uint32_t threadCount)
 {
-	sserialize::CellQueryResult r = cqrComplete(query, treedCQR, threadCount);
-	return ghs.subSet(r, r.cellCount() > minCq4SparseSubSet);
+	sserialize::CellQueryResult r = cqrComplete(query, ghsg, treedCQR, threadCount);
+	return ghsg.subSet(r, r.cellCount() > minCq4SparseSubSet);
 }
 
 sserialize::Static::spatial::GeoHierarchy::SubSet
@@ -287,15 +298,7 @@ OsmCompleter::clusteredComplete(
 	bool treedCQR,
 	uint32_t threadCount)
 {
-	sserialize::CellQueryResult r = cqrComplete(query, treedCQR, threadCount);
-	const sserialize::Static::spatial::GeoHierarchy * gh = &store().geoHierarchy();
-	
-	if (m_store.geoHierarchy().cellSize() >= MEMORY_BASED_SUBSET_CREATOR_MIN_CELL_COUNT) {
-		return m_ghs.subSet(r, r.cellCount() > minCq4SparseSubSet);
-	}
-	else {
-		return gh->subSet(r, false);
-	}
+	return this->clusteredComplete(query, m_ghsg, minCq4SparseSubSet, treedCQR, threadCount);
 }
 
 TagStore OsmCompleter::tagStore() const {
@@ -304,6 +307,5 @@ TagStore OsmCompleter::tagStore() const {
 	}
 	return TagStore();
 }
-
 
 }}//end namespace

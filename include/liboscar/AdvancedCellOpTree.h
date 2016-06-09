@@ -4,9 +4,10 @@
 #include <vector>
 #include <sserialize/spatial/CellQueryResult.h>
 #include <sserialize/Static/CellTextCompleter.h>
+#include <sserialize/Static/CQRDilator.h>
+#include <sserialize/Static/GeoHierarchySubGraph.h>
 #include <sserialize/strings/stringfunctions.h>
 #include <sserialize/utility/assert.h>
-#include <sserialize/Static/CQRDilator.h>
 #include "CQRFromComplexSpatialQuery.h"
 
 /** The AdvancedCellOpTree supports the following query language:
@@ -23,11 +24,12 @@
   * BETWEEN_OP := <->
   * BINARY_OP := - | + | / | ^ 
   * ITEM := $item:<itemId>
-  * GEO_RECT := $geo[]
+  * GEO_RECT := $geo:<rect-defintion>
   * POLYGON := $poly[]
   * GEO_PATH := $path[]
   * REGION := $region:<regionId>
   * REGION_EXCLUSIVE_CELLS := $rec:<regionId>
+  * CONSTRAINED_REGION_EXCLUSIVE_CELLS := $crec:<regionId>,<rect-definition>
   * CELL := $cell:<cellId>
   */
 namespace liboscar {
@@ -39,7 +41,7 @@ struct Node {
 	enum OpType : int {
 		FM_CONVERSION_OP, CELL_DILATION_OP, REGION_DILATION_OP, COMPASS_OP,
 		SET_OP, BETWEEN_OP,
-		RECT, POLYGON, PATH, REGION, REGION_EXCLUSIVE_CELLS, CELL, STRING, ITEM
+		RECT, POLYGON, PATH, REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS, CELL, STRING, ITEM
 	};
 	int baseType;
 	int subType;
@@ -74,6 +76,7 @@ struct Token {
 		GEO_PATH,
 		REGION,
 		REGION_EXCLUSIVE_CELLS,
+		CONSTRAINED_REGION_EXCLUSIVE_CELLS,
 		CELL,
 		STRING,
 		ITEM
@@ -137,25 +140,35 @@ class AdvancedCellOpTree final {
 public:
 	typedef detail::AdvancedCellOpTree::Node Node;
 public:
-	AdvancedCellOpTree(const sserialize::Static::CellTextCompleter & ctc, const sserialize::Static::CQRDilator & cqrd, const CQRFromComplexSpatialQuery & csq);
+	AdvancedCellOpTree(
+		const sserialize::Static::CellTextCompleter & ctc,
+		const sserialize::Static::CQRDilator & cqrd,
+		const CQRFromComplexSpatialQuery & csq,
+		const sserialize::spatial::GeoHierarchySubGraph & ghsg);
 	~AdvancedCellOpTree();
 	void parse(const std::string & str);
 	template<typename T_CQR_TYPE>
 	T_CQR_TYPE calc();
 private:
 	struct CalcBase {
-		CalcBase(sserialize::Static::CellTextCompleter & ctc, const sserialize::Static::CQRDilator & cqrd, const CQRFromComplexSpatialQuery & csq) :
+		CalcBase(sserialize::Static::CellTextCompleter & ctc,
+			const sserialize::Static::CQRDilator & cqrd,
+			const CQRFromComplexSpatialQuery & csq,
+			const sserialize::spatial::GeoHierarchySubGraph & ghsg) :
 		m_ctc(ctc),
 		m_cqrd(cqrd),
-		m_csq(csq)
+		m_csq(csq),
+		m_ghsg(ghsg)
 		{}
 		sserialize::Static::CellTextCompleter & m_ctc;
 		const sserialize::Static::CQRDilator & m_cqrd;
 		const CQRFromComplexSpatialQuery & m_csq;
+		const sserialize::spatial::GeoHierarchySubGraph & m_ghsg;
 		
 		const sserialize::Static::ItemIndexStore & idxStore() const;
 		const sserialize::Static::spatial::GeoHierarchy & gh() const;
 		const liboscar::Static::OsmKeyValueObjectStore & store() const;
+		const sserialize::spatial::GeoHierarchySubGraph & ghsg() const;
 		
 		sserialize::CellQueryResult calcBetweenOp(const sserialize::CellQueryResult & c1, const sserialize::CellQueryResult & c2);
 		sserialize::CellQueryResult calcCompassOp(Node * node, const sserialize::CellQueryResult & cqr);
@@ -165,8 +178,11 @@ private:
 	template<typename T_CQR_TYPE>
 	struct Calc: public CalcBase {
 		typedef T_CQR_TYPE CQRType;
-		Calc(sserialize::Static::CellTextCompleter & ctc, const sserialize::Static::CQRDilator & cqrd, const CQRFromComplexSpatialQuery & csq) :
-		CalcBase(ctc, cqrd, csq)
+		Calc(sserialize::Static::CellTextCompleter & ctc,
+			const sserialize::Static::CQRDilator & cqrd,
+			const CQRFromComplexSpatialQuery & csq,
+			const sserialize::spatial::GeoHierarchySubGraph & ghsg) :
+		CalcBase(ctc, cqrd, csq, ghsg)
 		{}
 		CQRType calc(Node * node);
 		CQRType calcItem(Node * node);
@@ -188,6 +204,7 @@ private:
 	sserialize::Static::CellTextCompleter m_ctc;
 	sserialize::Static::CQRDilator m_cqrd;
 	CQRFromComplexSpatialQuery m_csq;
+	sserialize::spatial::GeoHierarchySubGraph m_ghsg;
 	Node * m_root;
 };
 
@@ -196,7 +213,7 @@ T_CQR_TYPE
 AdvancedCellOpTree::calc() {
 	typedef T_CQR_TYPE CQRType;
 	if (m_root) {
-		Calc<CQRType> calculator(m_ctc, m_cqrd, m_csq);
+		Calc<CQRType> calculator(m_ctc, m_cqrd, m_csq, m_ghsg);
 		return calculator.calc( m_root );
 	}
 	else {
@@ -310,7 +327,8 @@ template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegionExclusiveCells(AdvancedCellOpTree::Node * node) {
 	uint32_t regionId = atoi(node->value.c_str());
-	return m_ctc.regionExclusiveCells<CQRType>(regionId);
+	sserialize::ItemIndex idx = ghsg().regionExclusiveCells(regionId);
+	return CQRType(idx, gh(), idxStore());
 }
 
 template<typename T_CQR_TYPE>

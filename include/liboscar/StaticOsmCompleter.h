@@ -36,7 +36,7 @@ private:
 	std::vector<sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter> > m_geoCompleters;
 	///maps from TextSearch::Type->(Position, StringCompleter)
 	uint8_t m_selectedGeoCompleter;
-	sserialize::spatial::GeoHierarchySubGraph m_ghs;
+	sserialize::spatial::GeoHierarchySubGraph m_ghsg;
 	
 private:
 	sserialize::RCPtrWrapper<TagCompleter> m_tagCompleter;
@@ -82,6 +82,7 @@ public:
 	Static::OsmItemSet simpleComplete(const std::string & query, uint32_t maxResultSetSize, uint32_t minStrLen);
 	Static::OsmItemSet simpleComplete(const std::string & query, uint32_t maxResultSetSize, uint32_t minStrLen, const sserialize::spatial::GeoRect & rect);
 	Static::OsmItemSetIterator partialComplete(const std::string& query, const sserialize::spatial::GeoRect & rect = sserialize::spatial::GeoRect());
+	sserialize::CellQueryResult cqrComplete(const std::string & query, const sserialize::spatial::GeoHierarchySubGraph & ghsg, bool treedCQR = false, uint32_t threadCount = 1);
 	///@param threadCount: the number of threads used to flatten a TreedCQR
 	sserialize::CellQueryResult cqrComplete(const std::string & query, bool treedCQR = false, uint32_t threadCount = 1);
 	sserialize::Static::spatial::GeoHierarchy::SubSet clusteredComplete(const std::string& query, const sserialize::spatial::GeoHierarchySubGraph & ghs, uint32_t minCq4SparseSubSet, bool treedCQR = false, uint32_t threadCount = 1);
