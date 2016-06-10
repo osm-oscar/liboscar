@@ -276,7 +276,7 @@ OsmCompleter::cqrComplete(
 	bool treedCQR,
 	uint32_t threadCount)
 {
-	this->cqrComplete(query, m_ghsg, treedCQR, threadCount);
+	return this->cqrComplete(query, m_ghsg, treedCQR, threadCount);
 }
 
 sserialize::Static::spatial::GeoHierarchy::SubSet
