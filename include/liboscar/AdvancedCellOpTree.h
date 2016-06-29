@@ -29,6 +29,7 @@
   * GEO_PATH := $path[]
   * REGION := $region:<storeId>
   * REGION_EXCLUSIVE_CELLS := $rec:<storeId>
+  * QUERY_EXCLUSIVE_CELLS := $qec:<minDirectParents>:<maxDirectParents>
   * CONSTRAINED_REGION_EXCLUSIVE_CELLS := $crec:<storeId>,<rect-definition>
   * CELL := $cell:<cellId>
   */
@@ -41,6 +42,7 @@ struct Node {
 	enum OpType : int {
 		FM_CONVERSION_OP, CELL_DILATION_OP, REGION_DILATION_OP, COMPASS_OP,
 		SET_OP, BETWEEN_OP,
+		QUERY_EXCLUSIVE_CELLS,
 		RECT, POLYGON, PATH, REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS, CELL, STRING, ITEM
 	};
 	int baseType;
@@ -76,6 +78,7 @@ struct Token {
 		GEO_PATH,
 		REGION,
 		REGION_EXCLUSIVE_CELLS,
+		QUERY_EXCLUSIVE_CELLS,
 		CONSTRAINED_REGION_EXCLUSIVE_CELLS,
 		CELL,
 		STRING,
@@ -196,6 +199,7 @@ private:
 		CQRType calcUnaryOp(Node * node);
 		CQRType calcDilationOp(Node * node);
 		CQRType calcRegionDilationOp(Node * node);
+		CQRType calcQueryExclusiveCells(Node * node);
 		CQRType calcCompassOp(Node * node);
 		CQRType calcBinaryOp(Node * node);
 		CQRType calcBetweenOp(Node * node);
@@ -418,6 +422,37 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcUnaryOp(AdvancedCellOpTree::Node* node
 	}
 }
 
+template<typename T_CQR_TYPE>
+T_CQR_TYPE
+AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcQueryExclusiveCells(AdvancedCellOpTree::Node* node) {
+	CQRType cqr( calc(node->children.front()) );
+	uint32_t dpMin = 0;
+	uint32_t dpMax = std::numeric_limits<uint32_t>::max();
+	{
+		std::vector<std::string> tmp = sserialize::split< std::vector<std::string> >(node->value, ':');
+		if (tmp.size() > 1) {
+			dpMin = std::atoi(tmp.front().c_str());
+			dpMax = std::atoi(tmp.at(1).c_str());
+		}
+		else if (tmp.size() > 1) {
+			dpMax = std::atoi(tmp.front().c_str());
+		}
+	}
+	if (!dpMax) {
+		return CQRType();
+	}
+	std::vector<uint32_t> tmp;
+	for(uint32_t i(0), s(cqr.cellCount()); i < s; ++i) {
+		uint32_t cellId = cqr.cellId(i);
+		uint32_t dps = ghsg().directParentsSize(cellId);
+		if (dps >= dpMin && dps <= dpMax) {
+			tmp.push_back(cellId);
+		}
+	}
+	sserialize::ItemIndex idx(std::move(tmp));
+	return CQRType(idx, gh(), idxStore()) / cqr;
+}
+
 template<>
 sserialize::CellQueryResult
 AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcBetweenOp(AdvancedCellOpTree::Node* node);
@@ -490,6 +525,8 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 			return calcRegionDilationOp(node);
 		case Node::COMPASS_OP:
 			return calcCompassOp(node);
+		case Node::QUERY_EXCLUSIVE_CELLS:
+			return calcQueryExclusiveCells(node);
 		default:
 			break;
 		};

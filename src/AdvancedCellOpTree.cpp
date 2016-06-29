@@ -220,6 +220,9 @@ Token Tokenizer::next() {
 				t.type = Token::REGION_EXCLUSIVE_CELLS;
 				opSeparates = true;
 			}
+			else if (tmp == "qec") {
+				t.type = Token::QUERY_EXCLUSIVE_CELLS;
+			}
 			else if (tmp == "cell") {
 				t.type = Token::CELL;
 				opSeparates = true;
@@ -330,6 +333,10 @@ detail::AdvancedCellOpTree::Node* Parser::parseUnaryOps() {
 		break;
 	case Token::COMPASS_OP:
 		nst = Node::COMPASS_OP;
+		break;
+	case Token::QUERY_EXCLUSIVE_CELLS:
+		nst = Node::QUERY_EXCLUSIVE_CELLS;
+		break;
 	default:
 		break;
 	}
@@ -339,6 +346,7 @@ detail::AdvancedCellOpTree::Node* Parser::parseUnaryOps() {
 	case Token::CELL_DILATION_OP:
 	case Token::REGION_DILATION_OP:
 	case Token::COMPASS_OP:
+	case Token::QUERY_EXCLUSIVE_CELLS:
 	{
 		pop();
 		Node * unaryOpNode = new Node();
@@ -374,6 +382,7 @@ detail::AdvancedCellOpTree::Node* Parser::parseSingleQ() {
 		eat((Token::Type)')');
 		return tmp;
 	}
+	case Token::QUERY_EXCLUSIVE_CELLS:
 	case Token::FM_CONVERSION_OP:
 	case Token::CELL_DILATION_OP:
 	case Token::REGION_DILATION_OP:
@@ -457,6 +466,7 @@ detail::AdvancedCellOpTree::Node* Parser::parseQ() {
 		case Token::CELL_DILATION_OP:
 		case Token::REGION_DILATION_OP:
 		case Token::COMPASS_OP:
+		case Token::QUERY_EXCLUSIVE_CELLS:
 		{
 			curTokenNode = parseUnaryOps();
 			if (!curTokenNode) { //something went wrong, skip this op
