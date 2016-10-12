@@ -152,6 +152,11 @@ public:
 	void parse(const std::string & str);
 	template<typename T_CQR_TYPE>
 	T_CQR_TYPE calc();
+public:
+	///get the root node, do not alter it!
+	const Node * root() const {
+		return m_root;
+	}
 private:
 	struct CalcBase {
 		CalcBase(sserialize::Static::CellTextCompleter & ctc,
