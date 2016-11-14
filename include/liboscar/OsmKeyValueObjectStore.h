@@ -80,7 +80,7 @@ public:
 	typedef sserialize::Static::KeyValueObjectStore KeyValueObjectStore;
 	typedef KeyValueObjectStore::ValueStringTable ValueStringTable;
 	typedef KeyValueObjectStore::KeyStringTable KeyStringTable;
-	typedef sserialize::ReadOnlyAtStlIterator<const OsmKeyValueObjectStore*, OsmKeyValueObjectStore::Item> const_iterator;
+	typedef sserialize::ReadOnlyAtStlIterator<const OsmKeyValueObjectStore*, OsmKeyValueObjectStore::Item, uint32_t> const_iterator;
 public:
 	static constexpr uint32_t npos = 0xFFFFFFFF;
 private:
@@ -177,7 +177,7 @@ public:
 	}
 	bool hasAnyStrIdOf(const std::unordered_set<uint32_t> & testSet) const {
 		uint32_t sc = strCount();
-		for(size_t i = 0; i < sc; ++i) {
+		for(uint32_t i = 0; i < sc; ++i) {
 			if (testSet.count(strIdAt(i)) > 0)
 				return true;
 		}
@@ -185,7 +185,7 @@ public:
 	}
 	bool hasAnyStrIdOf(const sserialize::ItemIndex & testSet) const {
 		uint32_t sc = strCount();
-		for(size_t i = 0; i < sc; ++i) {
+		for(uint32_t i = 0; i < sc; ++i) {
 			if (testSet.count(strIdAt(i)) > 0)
 				return true;
 		}

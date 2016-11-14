@@ -162,7 +162,7 @@ sserialize::spatial::GeoRect OsmKeyValueObjectStore::boundary() const {
 	if (!size())
 		return sserialize::spatial::GeoRect();
 	sserialize::spatial::GeoRect rect;
-	size_t i = 0;
+	uint32_t i = 0;
 
 	//find the first valid rect
 	for(uint32_t s = size(); i < s; ++i) {
@@ -228,8 +228,8 @@ std::ostream & OsmKeyValueObjectStore::printStats(std::ostream & out) const {
 }
 
 bool OsmKeyValueObjectStore::sanityCheck() const {
-	uint32_t keysSize = keyStringTable().size();
-	uint32_t valuesSize = valueStringTable().size();
+	auto keysSize = keyStringTable().size();
+	auto valuesSize = valueStringTable().size();
 
 	for(uint32_t i = 0, s = size(); i < s; ++i) {
 		Item item(at(i));
@@ -346,7 +346,7 @@ m_ccm(data+(1+m_payload.getSizeInBytes()+m_idToInternalId.getSizeInBytes()+m_kv.
 	if (m_ccm.size() != m_cg.size()) {
 		throw sserialize::CorruptDataException("OsmKeyValueObjectStore: m_ccm.size() != m_cg.size()");
 	}
-	m_size = m_payload.size();
+	m_size = sserialize::narrow_check<uint32_t>( m_payload.size() );
 }
 
 OsmKeyValueObjectStorePrivate::OsmKeyValueObjectStorePrivate() : m_size(0) {}
@@ -411,10 +411,10 @@ OsmKeyValueObjectStorePayload OsmKeyValueObjectStorePrivate::payload(uint32_t it
 }
 
 sserialize::ItemIndex OsmKeyValueObjectStorePrivate::complete(const sserialize::spatial::GeoRect & rect) const {
-	size_t s = size();
+	uint32_t s = size();
 	sserialize::UByteArrayAdapter cache( sserialize::UByteArrayAdapter::createCache(1, sserialize::MM_PROGRAM_MEMORY) );
 	sserialize::ItemIndexPrivateSimpleCreator creator(0, s, s, cache);
-	for(size_t i = 0; i < s; ++i) {
+	for(uint32_t i = 0; i < s; ++i) {
 		if (match(i, rect))
 			creator.push_back(i);
 	}
@@ -427,7 +427,7 @@ sserialize::ItemIndex OsmKeyValueObjectStorePrivate::filter(const sserialize::sp
 		return partner;
 	sserialize::UByteArrayAdapter cache( sserialize::UByteArrayAdapter::createCache(1, sserialize::MM_PROGRAM_MEMORY) );
 	sserialize::ItemIndexPrivateSimpleCreator creator(partner.front(), partner.back(), partner.size(), cache);
-	for(size_t i = 0; i < partner.size(); i++) {
+	for(uint32_t i = 0; i < partner.size(); i++) {
 		uint32_t itemId = partner.at(i);
 		if (match(itemId, rect))
 			creator.push_back(itemId);
@@ -482,10 +482,10 @@ std::ostream & OsmKeyValueObjectStorePrivate::printStats(std::ostream & out) con
 				case sserialize::spatial::GS_MULTI_POLYGON:
 				{
 					const sserialize::Static::spatial::GeoMultiPolygon * gmp = gs.get<sserialize::Static::spatial::GeoMultiPolygon>();
-					for(uint32_t j(0), js(gmp->outerPolygons().size()); j < js; ++j) {
+					for(uint32_t j(0), js((uint32_t) gmp->outerPolygons().size()); j < js; ++j) {
 						tmp += gmp->outerPolygons().at(j).size();
 					}
-					for(uint32_t j(0), js(gmp->innerPolygons().size()); j < js; ++j) {
+					for(uint32_t j(0), js((uint32_t) gmp->innerPolygons().size()); j < js; ++j) {
 						tmp += gmp->innerPolygons().at(j).size();
 					}
 					tmp2 += gmp->outerPolygons().size() + gmp->innerPolygons().size();

@@ -38,7 +38,7 @@ std::string Tokenizer::readString() {
 		tokenString += '?';
 		++m_state.it;
 		lastValidStrIt = m_state.it;
-		lastValidStrSize = tokenString.size();
+		lastValidStrSize = (int) tokenString.size();
 	}
 	if (*m_state.it == '"') {
 		tokenString += *m_state.it;
@@ -65,12 +65,12 @@ std::string Tokenizer::readString() {
 			}
 		}
 		lastValidStrIt = m_state.it;
-		lastValidStrSize = tokenString.size();
+		lastValidStrSize = (int) tokenString.size();
 		if (m_state.it != m_state.end && *m_state.it == '?') {
 			tokenString += *m_state.it;
 			++m_state.it;
 			lastValidStrIt = m_state.it;
-			lastValidStrSize = tokenString.size();
+			lastValidStrSize = (int) tokenString.size();
 		}
 	}
 	else {
@@ -92,7 +92,7 @@ std::string Tokenizer::readString() {
 				tokenString += *m_state.it;
 				if (m_strHinter->operator()(tokenString.cbegin(), tokenString.cend())) {
 					if (tokenString.size() > 1 && tokenString.at(tokenString.size()-2) != ' ') {
-						lastValidStrSize = tokenString.size()-1;
+						lastValidStrSize = (int) (tokenString.size()-1);
 						lastValidStrIt = m_state.it;
 					}
 					++m_state.it;
@@ -105,7 +105,7 @@ std::string Tokenizer::readString() {
 			else if (isScope(*m_state.it)) {
 				//we've read a string with spaces, check if all up to here is also part of it
 				if (lastValidStrSize >= 0 && tokenString.size() && tokenString.back() != ' ' && m_strHinter->operator()(tokenString.cbegin(), tokenString.cend())) {
-					lastValidStrSize = tokenString.size();
+					lastValidStrSize = (int) tokenString.size();
 					lastValidStrIt = m_state.it;
 				}
 				break;
@@ -125,7 +125,7 @@ std::string Tokenizer::readString() {
 			}
 		}
 		if (lastValidStrSize < 0 || (m_state.it == m_state.end && m_strHinter->operator()(tokenString.cbegin(), tokenString.cend()))) {
-			lastValidStrSize = tokenString.size();
+			lastValidStrSize = (int) tokenString.size();
 			lastValidStrIt = m_state.it;
 		}
 		else if (lastValidStrSize > 0) {

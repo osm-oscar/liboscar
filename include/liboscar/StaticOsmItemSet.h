@@ -13,14 +13,14 @@ typedef sserialize::FilteredItemSet<liboscar::Static::OsmKeyValueObjectStoreItem
 
 
 inline std::ostream & operator<<(std::ostream & out, const Static::OsmItemSet & s) {
-	for(size_t i = 0; i < s.size(); i++) {
+	for(uint32_t i = 0; i < s.size(); i++) {
 		s.at(i).print(out, true);
 	}
 	return out;
 }
 
 inline std::ostream & operator<<(std::ostream & out, Static::OsmItemSetIterator & s) {
-	for(size_t i = 0; i < s.cacheSize(); i++) {
+	for(uint32_t i = 0; i < s.cacheSize(); i++) {
 		s.at(i).print(out, true);
 	}
 	return out;

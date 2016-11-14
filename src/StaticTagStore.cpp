@@ -44,9 +44,10 @@ TagStore::Node TagStore::at(const std::vector< uint16_t >& treePath) const {
 TagStore::Node TagStore::at(const std::vector< std::string >& treePath) const {
 	Node curNode(getNodeById(0));
 	for(size_t i = 0; i < treePath.size(); i++) {
-		int32_t curChildPos = curNode.children().findPosition(treePath[i]);
-		if (curChildPos < 0)
+		auto curChildPos = curNode.children().findPosition(treePath[i]);
+		if (curChildPos == curNode.children().npos) {
 			return Node();
+		}
 		curNode = getNodeById(curNode.children().atPosition(curChildPos).second());
 	}
 	return curNode;
@@ -121,9 +122,10 @@ bool TagStore::nodeId(const std::vector< std::string >& treePath, uint16_t & nod
 	uint16_t curNodeId = 0;
 	Node curNode(getNodeById(curNodeId));
 	for(size_t i = 0; i < treePath.size(); i++) {
-		int32_t curChildPos = curNode.children().findPosition(treePath[i]);
-		if (curChildPos < 0)
+		auto curChildPos = curNode.children().findPosition(treePath[i]);
+		if (curNode.children().npos == curChildPos) {
 			return false;
+		}
 		curNodeId = curNode.children().atPosition(curChildPos).second();
 		curNode = getNodeById(curNodeId);
 	}

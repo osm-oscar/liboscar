@@ -60,7 +60,7 @@ public:
 	bool nodeId(const std::vector<std::string> & treePath, uint16_t & nodeId) const;
 	std::string nodeString(const uint16_t nodeId);
 	uint32_t size() const { return m_nodeIndex.size();}
-	uint32_t getSizeInBytes() const { return 1 + m_nodeIndex.getSizeInBytes() + m_nodes.size(); }
+	sserialize::UByteArrayAdapter::SizeType getSizeInBytes() const { return 1 + m_nodeIndex.getSizeInBytes() + m_nodes.size(); }
 	std::ostream& printStats(std::ostream& out) const;
 	
 	const sserialize::Static::ItemIndexStore & itemIndexStore() const { return m_indexStore; }

@@ -31,7 +31,7 @@ public:
 	inline const sserialize::GeoCompleter & get(Type t, uint32_t pos) const { return m_completers.at(t).at(pos); }
 	inline sserialize::GeoCompleter & get(Type t, uint32_t pos) { return m_completers.at(t).at(pos); }
 	inline bool hasSearch(Type t) const { return m_completers.count(t);}
-	inline uint32_t size(Type t) const { return (hasSearch(t) ? m_completers.at(t).size() : 0); }
+	inline std::size_t size(Type t) const { return (hasSearch(t) ? m_completers.at(t).size() : 0); }
 };
 
 class GeoSearchCreator: protected sserialize::Static::ArrayCreator<sserialize::UByteArrayAdapter> {
