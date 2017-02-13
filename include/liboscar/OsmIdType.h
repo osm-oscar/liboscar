@@ -2,6 +2,7 @@
 #define LIBOSCAR_OSM_ID_TYPE_H
 #include <liboscar/constants.h>
 #include <sserialize/storage/UByteArrayAdapter.h>
+#include <sserialize/storage/pack_unpack_functions.h>
 
 namespace liboscar {
 
@@ -28,6 +29,9 @@ public:
 	inline sserialize::UByteArrayAdapter & append(sserialize::UByteArrayAdapter & dest) const {
 		dest.putVlPackedInt64(m_d);
 		return dest;
+	}
+	inline sserialize::UByteArrayAdapter::SizeType getSizeInBytes() const {
+		return sserialize::psize_vs64(m_d);
 	}
 };
 
