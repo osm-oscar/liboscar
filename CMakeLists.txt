@@ -14,37 +14,63 @@ set(MY_CXX_FLAGS "-std=gnu++14")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MY_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MY_CXX_FLAGS}")
 
-include_directories(
-${CMAKE_SOURCE_DIR}
-${CMAKE_CURRENT_BINARY_DIR}
-${CMAKE_CURRENT_SOURCE_DIR}
-${CMAKE_CURRENT_SOURCE_DIR}/include/
-${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/include/
+find_package(LIBRT REQUIRED)
+add_subdirectory(vendor/sserialize sserialize)
+
+set(LIBOSCAR_INCLUDE_DIR
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
+	${SSERIALIZE_INCLUDE_DIR}
+	CACHE STRING "liboscar include directories"
+	FORCE
 )
 
-find_package(LIBRT REQUIRED)
+set(LIBOSCAR_LIBRARIES
+	${PROJECT_NAME}
+	CACHE STRING "liboscar libraries"
+	FORCE
+)
 
-add_subdirectory(vendor/sserialize sserialize)
-add_target_properties(sserialize COMPILE_FLAGS -fPIC)
+set(LIBOSCAR_LINK_LIBRARIES
+	${PROJECT_NAME}
+	${SSERIALIZE_LINK_LIBRARIES}
+	CACHE STRING "liboscar link libraries"
+	FORCE
+)
+
+set(LIBOSCAR_COMPILE_DEFINITIONS
+	${SSERIALIZE_COMPILE_DEFINITIONS}
+	CACHE STRING "liboscar compile definitions"
+	FORCE
+)
+
+mark_as_advanced(
+	LIBOSCAR_INCLUDE_DIR
+	LIBOSCAR_LIBRARIES
+	LIBOSCAR_LINK_LIBRARIES
+	LIBOSCAR_COMPILE_DEFINITIONS
+)
+
+include_directories(
+	${LIBOSCAR_INCLUDE_DIR}
+)
 
 set(LIBOSCAR_SOURCES_CPP
-src/StaticOsmCompleter.cpp
-src/StaticTagStore.cpp
-src/constants.cpp
-src/tagcompleters.cpp
-src/SetOpTreePrivateGeo.cpp
-src/OsmKeyValueObjectStore.cpp
-src/TextSearch.cpp
-src/GeoSearch.cpp
-src/CellOpTree.cpp
-src/AdvancedCellOpTree.cpp
-src/CQRFromPolygon.cpp
-src/CQRFromComplexSpatialQuery.cpp
+	src/StaticOsmCompleter.cpp
+	src/StaticTagStore.cpp
+	src/constants.cpp
+	src/tagcompleters.cpp
+	src/SetOpTreePrivateGeo.cpp
+	src/OsmKeyValueObjectStore.cpp
+	src/TextSearch.cpp
+	src/GeoSearch.cpp
+	src/CellOpTree.cpp
+	src/AdvancedCellOpTree.cpp
+	src/CQRFromPolygon.cpp
+	src/CQRFromComplexSpatialQuery.cpp
 )
 
-
 SET(LIBOSCAR_LINK_LIBS
-	${sserialize_BINARY_DIR}/libsserialize.a
+	${SSERIALIZE_LINK_LIBRARIES}
 	${LIBRT_LIBRARIES}
 	"CGAL"
 	"mpfr"
