@@ -635,17 +635,18 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 	if (cqr.cellCount() == 0) {
 		return sserialize::CellQueryResult();
 	}
+	QueryItemType qit;
+	uint32_t id;
+	determineQueryItemType(cqr, qit, id);
 	
-	SubSet subSet( createSubSet(cqr) );
-	SubSet::NodePtr myRegion( determineRelevantRegion(subSet) );
-	if (!myRegion.get()) {
+	if (qit == QIT_INVALID) {
 		return sserialize::CellQueryResult();
 	}
+	
 	//now construct the polygon
 	std::vector<sserialize::spatial::GeoPoint> pp;
-	if (cqr.cellCount() < m_itemQueryCellCountTh && myRegion->maxItemsSize() < m_itemQueryItemCountTh) {
-		uint32_t itemId = determineRelevantItem(subSet, myRegion);
-		auto shape(store().geoShape(itemId));
+	if (qit == QIT_ITEM) {
+		auto shape(store().geoShape(id));
 		auto st(shape.type());
 		switch (st) {
 		case sserialize::spatial::GS_POINT:
@@ -664,20 +665,134 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 		}
 		return m_cqrfp.cqr(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_AUTO);
 	}
-	else {
-		createPolygon(geoHierarchy().regionBoundary(myRegion->ghId()), direction, pp);
+	else if (qit == QIT_REGION) {
+		createPolygon(geoHierarchy().regionBoundary(id), direction, pp);
 		if (!pp.size()) {
 			return sserialize::CellQueryResult();
 		}
 		sserialize::ItemIndex tmp(m_cqrfp.fullMatches(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX));
-		tmp = tmp - idxStore().at(m_cqrfp.geoHierarchy().regionCellIdxPtr(myRegion->ghId()));
+		tmp = tmp - idxStore().at(m_cqrfp.geoHierarchy().regionCellIdxPtr(id));
 		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore());
+	}
+	else {
+		assert(false);
+	}
+	return sserialize::CellQueryResult();
+}
+
+
+void
+CQRFromComplexSpatialQuery::determineQueryItemTypeOld(const sserialize::CellQueryResult & cqr, QueryItemType & qit, uint32_t & id) const {
+	SubSet subSet( createSubSet(cqr) );
+	SubSet::NodePtr myRegion( determineRelevantRegion(subSet) );
+	if (!myRegion.get()) {
+		id = std::numeric_limits<uint32_t>::max();
+		qit = QIT_INVALID;
+	}
+	else if (cqr.cellCount() < m_itemQueryCellCountTh && myRegion->maxItemsSize() < m_itemQueryItemCountTh) {
+		id = determineRelevantItem(subSet, myRegion);
+		qit = QIT_ITEM;
+	}
+	else {
+		id = myRegion->ghId();
+		qit = QIT_REGION;
+	}
+}
+
+
+//new way to determine region/item:
+//first calculate for each region the number of full match and partial match cells
+//for a region-query we can simply take the region that has the highest ratio of fm to total cells
+//ties are broken by region that is higher up the hierarchy
+//we can compute the best region during the computation of the ratios
+
+namespace {
+	struct Stat {
+		uint32_t rid;
+		uint32_t fmc; // full match cell count
+		uint32_t pmc; //partial match cell count
+		uint32_t rcc; //region cell count
+		Stat() : rid(std::numeric_limits<uint32_t>::max()), fmc(0), pmc(0), rcc(0) {}
+		Stat(uint32_t rid, uint32_t fmc, uint32_t pmc, uint32_t rcc) : rid(rid), fmc(fmc), pmc(pmc), rcc(rcc) {}
+		bool valid() const { return rid != std::numeric_limits<uint32_t>::max(); }
+		bool operator<(const Stat & other) const {
+			//we want to compute if fmc/rcc < other.fmc/other.rcc
+			//this is the case if fmc/rcc - other.fmc/other.rcc < 0
+			//hence fmc*other.rcc - other.fmc*rcc < 0
+			uint64_t fmc_orcc = (uint64_t)fmc * (uint64_t)other.rcc;
+			uint64_t ofmc_rcc = (uint64_t)other.fmc * (uint64_t)rcc;
+			if (fmc_orcc < ofmc_rcc) { //smaller
+				return true;
+			}
+			else if (fmc_orcc == ofmc_rcc) { //zero, they have the same ratio, do the same for pmc
+				uint64_t pmc_orcc = (uint64_t)pmc * (uint64_t)other.rcc;
+				uint64_t opmc_rcc = (uint64_t)other.pmc * (uint64_t)rcc;
+				if (pmc_orcc < opmc_rcc) { //smaller
+					return true;
+				}
+				else if (pmc_orcc == opmc_rcc) {
+					//now its all up to absolutes
+					if (fmc < other.fmc) {
+						return true;
+					}
+					else if (fmc == other.fmc) {
+						return (pmc == other.pmc ? rcc < other.rcc : pmc < other.pmc);
+					}
+					else {
+						return false;
+					}
+				}
+				else { //larger
+					return false;
+				}
+			}
+			else { //larger
+				return false;
+			}
+		}
+		static Stat min() { return Stat(std::numeric_limits<uint32_t>::max(), 0, 0, 1); }
+	};
+} //end namespace
+
+void
+CQRFromComplexSpatialQuery::determineQueryItemType(const sserialize::CellQueryResult& cqr, QueryItemType& qit, uint32_t & id) const {
+	Stat best = Stat::min();
+	std::unordered_map<uint32_t, Stat> r2s;
+	for(sserialize::CellQueryResult::const_iterator it(cqr.begin()), end(cqr.end()); it != end; ++it) {
+		auto cellParents = m_ssc.cellParents(it.cellId());
+		bool fm = it.fullMatch();
+		bool pm = !fm;
+		for(uint32_t rid : cellParents) {
+			Stat & s = r2s[rid];
+			if (!s.rcc) {
+				s.rid = rid;
+				s.rcc = m_ssc.regionCellCount(rid);
+			}
+			//https://stackoverflow.com/questions/2725044/can-i-assume-booltrue-int1-for-any-c-compiler
+			s.fmc += (int)fm;
+			s.pmc += (int)pm;
+			if (best < s) {
+				best = s;
+			}
+		}
+	}
+	//Now check if the "best" region has any full match cells. If this is the case,
+	//then this should not be an item query (except if there is a cell with only a single item in it)
+	qit = QIT_REGION;
+	id = best.rid;
+	//check if this could be a item query
+	if (best.fmc < best.rcc && best.pmc + best.fmc < m_itemQueryCellCountTh) {
+		sserialize::ItemIndex items( cqr.flaten() );
+		if (items.size() < m_itemQueryItemCountTh) {
+			qit = QIT_ITEM;
+			id = determineRelevantItem( items );
+		}
 	}
 }
 
 detail::CQRFromComplexSpatialQuery::SubSet
 CQRFromComplexSpatialQuery::createSubSet(const sserialize::CellQueryResult cqr) const {
-	return m_ssc.subSet(cqr, true);
+	return m_ssc.subSet(cqr, false);
 }
 
 detail::CQRFromComplexSpatialQuery::SubSet::NodePtr
@@ -701,7 +816,10 @@ CQRFromComplexSpatialQuery::determineRelevantRegion(const detail::CQRFromComplex
 }
 
 uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const SubSet & subSet, const SubSet::NodePtr & rPtr) const {
-	sserialize::ItemIndex items( subSet.idx(rPtr) );
+	return determineRelevantItem( subSet.idx(rPtr) );
+}
+
+uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const sserialize::ItemIndex & items) const {
 	double resDiag = 0.0;
 	uint32_t resId = liboscar::Static::OsmKeyValueObjectStore::npos;
 	for(uint32_t itemId : items) {
@@ -732,5 +850,6 @@ uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const SubSet & subSet
 	SSERIALIZE_CHEAP_ASSERT_NOT_EQUAL(resId, liboscar::Static::OsmKeyValueObjectStore::npos);
 	return resId;
 }
+
 
 }}//end namespace liboscar::detail

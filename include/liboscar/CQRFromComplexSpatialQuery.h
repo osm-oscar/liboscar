@@ -31,6 +31,8 @@ namespace detail {
 class CQRFromComplexSpatialQuery: public sserialize::RefCountObject {
 public:
 	typedef sserialize::Static::spatial::GeoHierarchy::SubSet SubSet;
+private:
+	enum QueryItemType : uint32_t { QIT_INVALID=0, QIT_ITEM=1, QIT_REGION=2};
 public:
 	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph& ssc, const liboscar::CQRFromPolygon& cqrfp);
 	virtual ~CQRFromComplexSpatialQuery();
@@ -59,6 +61,12 @@ private:
 	SubSet::NodePtr determineRelevantRegion(const SubSet & subset) const;
 	///@return itemId
 	uint32_t determineRelevantItem(const SubSet & subSet, const SubSet::NodePtr & rPtr) const;
+	uint32_t determineRelevantItem(const sserialize::ItemIndex & items) const;
+private:
+	///if qit == QIT_REGION then id is ghId
+	void determineQueryItemType(const sserialize::CellQueryResult& cqr, QueryItemType& qit, uint32_t & id) const;
+	void determineQueryItemTypeOld(const sserialize::CellQueryResult & cqr, QueryItemType & qit, uint32_t & id) const;
+	
 private: //accessor function
 	const liboscar::Static::OsmKeyValueObjectStore & store() const;
 	const sserialize::Static::spatial::GeoHierarchy & geoHierarchy() const;
