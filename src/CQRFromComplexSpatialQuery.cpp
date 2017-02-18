@@ -494,9 +494,12 @@ createPolygon(
 
 
 sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sserialize::CellQueryResult& cqr1, const sserialize::CellQueryResult& cqr2) const {
-	SubSet s1(createSubSet(cqr1)), s2(createSubSet(cqr2));
-	SubSet::NodePtr np1(determineRelevantRegion(s1)), np2(determineRelevantRegion(s2));
-	if (!np1.get() || !np2.get() || np1->ghId() == np2->ghId()) {
+	QueryItemType qit1, qit2;
+	uint32_t id1, id2;
+	determineQueryItemType(cqr1, qit1, id1);
+	determineQueryItemType(cqr2, qit2, id2);
+	
+	if (qit1 == QIT_INVALID || qit2 == QIT_INVALID || id1 == id2) {
 		return sserialize::CellQueryResult();
 	}
 	
@@ -506,13 +509,10 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 	//or sum them all up into a single big rectangle?
 	//construct the convex hull?
 	
-	bool cqr1IsItemQuery = cqr1.cellCount() < m_itemQueryCellCountTh && np1->maxItemsSize() < m_itemQueryItemCountTh;
-	bool cqr2IsItemQuery = cqr2.cellCount() < m_itemQueryCellCountTh && np2->maxItemsSize() < m_itemQueryItemCountTh;
-	
-	if (cqr1IsItemQuery && cqr2IsItemQuery) {
+	if (qit1 == QIT_ITEM && qit2 == QIT_ITEM) {
 		//lets find the item
-		uint32_t itemId1 = determineRelevantItem(s1, np1);
-		uint32_t itemId2 = determineRelevantItem(s2, np2);
+		uint32_t itemId1 = id1;
+		uint32_t itemId2 = id2;
 		auto shape1(store().geoShape(itemId1));
 		auto shape2(store().geoShape(itemId2));
 		auto st1(shape1.type());
@@ -601,18 +601,18 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 		
 		return cqrFromPolygon( sserialize::spatial::GeoPolygon(pp) );
 	}
-	else if (cqr1IsItemQuery || cqr2IsItemQuery) {
+	else if (qit1 == QIT_ITEM || qit2 == QIT_ITEM) {
 		//item <-> region, just use the bounding box of the item and the bounding box of the region
 		sserialize::spatial::GeoRect rect1, rect2;
-		if (cqr1IsItemQuery) {
-			uint32_t itemId = determineRelevantItem(s1, np1);
+		if (qit1 == QIT_ITEM) {
+			uint32_t itemId = id1;
 			rect1 = store().geoShape(itemId).boundary();
-			rect2 = geoHierarchy().regionBoundary(np2->ghId());
+			rect2 = geoHierarchy().regionBoundary(id2);
 		}
 		else {
-			uint32_t itemId = determineRelevantItem(s2, np2);
+			uint32_t itemId = id2;
 			rect1 = store().geoShape(itemId).boundary();
-			rect2 = geoHierarchy().regionBoundary(np1->ghId());
+			rect2 = geoHierarchy().regionBoundary(id1);
 		}
 		std::vector<sserialize::spatial::GeoPoint> gp;
 		createPolygon(rect1, rect2, gp);
@@ -620,12 +620,12 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 	}
 	else {
 		std::vector<sserialize::spatial::GeoPoint> gp;
-		createPolygon(geoHierarchy().regionBoundary(np1->ghId()), geoHierarchy().regionBoundary(np2->ghId()), gp);
+		createPolygon(geoHierarchy().regionBoundary(id1), geoHierarchy().regionBoundary(id2), gp);
 		
 		sserialize::ItemIndex tmp(cqrfp().fullMatches(sserialize::spatial::GeoPolygon(gp), liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX));
 		//now remove the cells that are part of the input regions
-		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(np1->ghId()));
-		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(np2->ghId()));
+		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(id1));
+		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(id2));
 		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore());
 	}
 }
