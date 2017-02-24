@@ -43,7 +43,7 @@ struct Node {
 		FM_CONVERSION_OP, CELL_DILATION_OP, REGION_DILATION_OP, COMPASS_OP,
 		SET_OP, BETWEEN_OP,
 		QUERY_EXCLUSIVE_CELLS,
-		RECT, POLYGON, PATH, REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS, CELL, STRING, ITEM
+		RECT, POLYGON, PATH, REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS, CELL, STRING, ITEM, STRING_ITEM, STRING_REGION
 	};
 	int baseType;
 	int subType;
@@ -82,7 +82,9 @@ struct Token {
 		CONSTRAINED_REGION_EXCLUSIVE_CELLS,
 		CELL,
 		STRING,
-		ITEM
+		ITEM,
+		STRING_ITEM,
+		STRING_REGION
 		
 	};
 	int type;
@@ -376,19 +378,13 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcString(AdvancedCellOpTree::Node* node)
 		return CQRType();
 	}
 	const std::string & str = node->value;
-	std::string qstr;
-	if ('!' == str[0] || '#' == str[0]) {
-		qstr.insert(qstr.end(), str.begin()+1, str.end());
-	}
-	else {
-		qstr = str;
-	}
+	std::string qstr(str);
 	sserialize::StringCompleter::QuerryType qt = sserialize::StringCompleter::QT_NONE;
 	qt = sserialize::StringCompleter::normalize(qstr);
-	if ('!' == str[0]) {
+	if (node->subType == Node::STRING_ITEM) {
 		return m_ctc.items<T_CQR_TYPE>(qstr, qt);
 	}
-	else if ('#' == str[0]) {
+	else if (node->subType == Node::STRING_REGION) {
 		return m_ctc.regions<T_CQR_TYPE>(qstr, qt);
 	}
 	else {
@@ -501,6 +497,8 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 	case Node::LEAF:
 		switch (node->subType) {
 		case Node::STRING:
+		case Node::STRING_REGION:
+		case Node::STRING_ITEM:
 			return calcString(node);
 		case Node::REGION:
 			return calcRegion(node);

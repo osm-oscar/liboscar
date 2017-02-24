@@ -275,12 +275,25 @@ Token Tokenizer::next() {
 			m_state.it = it;
 			return t;
 		}
+		case '#':
+		{
+			t.type = Token::STRING_REGION;
+			++m_state.it;
+			t.value = readString();
+			return t;
+		}
+		case '!':
+		{
+			t.type = Token::STRING_ITEM;
+			++m_state.it;
+			t.value = readString();
+			return t;
+		}
 		default: //read as normal string
 		{
 			t.type = Token::STRING;
 			t.value = readString();
 			return t;
-			break;
 		}
 		};
 	}
@@ -429,6 +442,18 @@ detail::AdvancedCellOpTree::Node* Parser::parseSingleQ() {
 	{
 		pop();
 		return new Node(Node::LEAF, Node::STRING, t.value);
+		break;
+	}
+	case Token::STRING_ITEM:
+	{
+		pop();
+		return new Node(Node::LEAF, Node::STRING_ITEM, t.value);
+		break;
+	}
+	case Token::STRING_REGION:
+	{
+		pop();
+		return new Node(Node::LEAF, Node::STRING_REGION, t.value);
 		break;
 	}
 	case Token::ITEM:
