@@ -717,8 +717,7 @@ namespace {
 		bool valid() const { return rid != std::numeric_limits<uint32_t>::max(); }
 		bool operator<(const Stat & other) const {
 			//we want to compute if fmc/rcc < other.fmc/other.rcc
-			//this is the case if fmc/rcc - other.fmc/other.rcc < 0
-			//hence fmc*other.rcc - other.fmc*rcc < 0
+			//this is the case if fmc*other.rcc < other.fmc*rcc
 			uint64_t fmc_orcc = (uint64_t)fmc * (uint64_t)other.rcc;
 			uint64_t ofmc_rcc = (uint64_t)other.fmc * (uint64_t)rcc;
 			if (fmc_orcc < ofmc_rcc) { //smaller
