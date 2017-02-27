@@ -819,6 +819,7 @@ uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const SubSet & subSet
 }
 
 uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const sserialize::ItemIndex & items) const {
+	SSERIALIZE_CHEAP_ASSERT_NOT_EQUAL(items.size(), 0);
 	double resDiag = 0.0;
 	uint32_t resId = liboscar::Static::OsmKeyValueObjectStore::npos;
 	for(uint32_t itemId : items) {
