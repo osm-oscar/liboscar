@@ -755,6 +755,10 @@ namespace {
 
 void
 CQRFromComplexSpatialQuery::determineQueryItemType(const sserialize::CellQueryResult& cqr, QueryItemType& qit, uint32_t & id) const {
+	if (!cqr.cellCount()) {
+		qit = QIT_INVALID;
+	}
+
 	Stat best = Stat::min();
 	std::unordered_map<uint32_t, Stat> r2s;
 	for(sserialize::CellQueryResult::const_iterator it(cqr.begin()), end(cqr.end()); it != end; ++it) {
