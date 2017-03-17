@@ -152,6 +152,8 @@ public:
 		const sserialize::spatial::GeoHierarchySubGraph & ghsg);
 	~AdvancedCellOpTree();
 	void parse(const std::string & str);
+	///remove potential harmless queries
+	void clean(double maxDilation);
 	template<typename T_CQR_TYPE>
 	T_CQR_TYPE calc();
 public:
