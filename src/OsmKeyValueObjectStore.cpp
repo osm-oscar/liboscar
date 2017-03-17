@@ -6,6 +6,13 @@
 
 namespace liboscar {
 namespace Static {
+namespace detail {
+
+OsmKeyValueObjectStore::Item ItemId2OsmId::operator()(uint32_t id) const {
+	return m_store.at(id);
+}
+
+}//end namespace detail
 
 constexpr uint32_t OsmKeyValueObjectStore::npos;
 
