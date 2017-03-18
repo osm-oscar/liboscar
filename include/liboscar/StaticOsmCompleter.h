@@ -61,6 +61,7 @@ public:
 
 	inline const TextSearch & textSearch() const { return m_textSearch; }
 	inline const GeoSearch & geoSearch() const { return m_geoSearch; }
+	inline const sserialize::spatial::GeoHierarchySubGraph & ghsg() const { return m_ghsg; }
 	inline const std::vector<sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter> > & geoCompleters() const { return m_geoCompleters; }
 	inline const liboscar::Static::OsmKeyValueObjectStore & store() const { return m_store; }
 	inline const sserialize::Static::ItemIndexStore & indexStore() const { return m_indexStore; }
