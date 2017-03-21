@@ -237,7 +237,13 @@ AdvancedCellOpTree::calc() {
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRect(AdvancedCellOpTree::Node* node) {
-	return m_ctc.cqrFromRect<CQRType>(sserialize::spatial::GeoRect(node->value, true));
+	sserialize::spatial::GeoRect rect(node->value, true);
+	if (rect.lengthInM() < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX) {
+		return T_CQR_TYPE( m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon::fromRect(rect), CQRFromPolygon::AC_AUTO) );
+	}
+	else {
+		return m_ctc.cqrFromRect<CQRType>(rect);
+	}
 }
 
 template<typename T_CQR_TYPE>
