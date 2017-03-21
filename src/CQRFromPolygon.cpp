@@ -73,13 +73,13 @@ sserialize::ItemIndex CQRFromPolygon::fullMatches(const sserialize::spatial::Geo
 sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPolygon& gp, liboscar::CQRFromPolygon::Accuracy ac) const {
 	if (ac == liboscar::CQRFromPolygon::AC_AUTO) {
 		double gpLen = gp.length();
-		if (gpLen < 4*500.0) { //smaller than a square of 500m
+		if (gpLen < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_ITEM;
 		}
-		else if (gpLen < 4*1000.0) { //smaller than a square of 1000m
+		else if (gpLen < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX;
 		}
-		else if (gpLen < 4*250.0*1000.0) { //smaller than a square of 250km
+		else if (gpLen < liboscar::CQRFromPolygon::ACT_POLYGON_CELL_BBOX) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX;
 		}
 		else { //really large, use fast test
