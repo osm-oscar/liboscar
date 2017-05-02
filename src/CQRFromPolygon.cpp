@@ -32,6 +32,10 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 	return m_priv->cqr(gp, ac);
 }
 
+sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPoint& gp, double radius, CQRFromPolygon::Accuracy ac) const {
+	return m_priv->cqr(gp, radius, ac);
+}
+
 namespace detail {
 
 CQRFromPolygon::CQRFromPolygon(const Static::OsmKeyValueObjectStore& store, const sserialize::Static::ItemIndexStore & idxStore) :
@@ -100,6 +104,48 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 		throw sserialize::InvalidEnumValueException("CQRFromPolygon::Accuracy does not have " + std::to_string(ac) + " as value");
 		return sserialize::CellQueryResult();;
 	};
+}
+
+sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPoint& gp, double radius, liboscar::CQRFromPolygon::Accuracy ac) const {
+	if (radius <= 0) { //radius is 0
+		uint32_t cellId = m_store.regionArrangement().cellId(gp);
+		
+		if (cellId == m_store.regionArrangement().NullCellId) {
+			return sserialize::CellQueryResult();
+		}
+
+		//there should be exactly one
+		sserialize::ItemIndex idx( m_idxStore.at( m_store.geoHierarchy().cellItemsPtr(cellId) ) );
+		//now check all those items in that cell (this may be very very expensive)
+		//though we can avoid checking non-polygon items
+		//since the probability that the test point really intersects points/ways is close to zero
+		std::vector<uint32_t> tmp;
+		for(uint32_t itemId : idx) {
+			sserialize::spatial::GeoShapeType gst = m_store.geoShapeType(itemId);
+			bool contained = false;
+			if (gst == sserialize::spatial::GS_STATIC_POLYGON) {
+				contained = m_store.geoShape(itemId).get<sserialize::Static::spatial::GeoPolygon>()->contains(gp);
+			}
+			else if (gst == sserialize::spatial::GS_STATIC_MULTI_POLYGON) {
+				contained = m_store.geoShape(itemId).get<sserialize::Static::spatial::GeoMultiPolygon>()->contains(gp);
+			}
+			if (contained) {
+				tmp.emplace_back(itemId);
+			}
+		}
+		std::vector<sserialize::ItemIndex> pmIdcs(1, sserialize::ItemIndex(std::move(tmp)));
+		sserialize::CellQueryResult result(
+			sserialize::ItemIndex(),
+			sserialize::ItemIndex( std::vector<uint32_t>(1, cellId) ),
+			pmIdcs.begin(),
+			geoHierarchy(),
+			idxStore()
+		);
+		return result;
+	}
+	else {
+		return cqr(sserialize::spatial::GeoPolygon::fromRect(sserialize::spatial::GeoRect(gp.lat(), gp.lon(), radius)), ac);
+	}
 }
 
 sserialize::Static::spatial::GeoPolygon detail::CQRFromPolygon::toStatic(const sserialize::spatial::GeoPolygon& gp) const {
