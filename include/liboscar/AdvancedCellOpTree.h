@@ -25,6 +25,7 @@
   * BINARY_OP := - | + | / | ^ 
   * ITEM := $item:<itemId>
   * GEO_RECT := $geo:<rect-defintion>
+  * POINT := $point:lat:lon:[radius]
   * POLYGON := $poly[]
   * GEO_PATH := $path[]
   * REGION := $region:<storeId>
@@ -43,7 +44,10 @@ struct Node {
 		FM_CONVERSION_OP, CELL_DILATION_OP, REGION_DILATION_OP, COMPASS_OP,
 		SET_OP, BETWEEN_OP,
 		QUERY_EXCLUSIVE_CELLS,
-		RECT, POLYGON, PATH, REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS, CELL, STRING, ITEM, STRING_ITEM, STRING_REGION
+		RECT, POLYGON, PATH, POINT,
+		REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS,
+		CELL,
+		STRING, ITEM, STRING_ITEM, STRING_REGION
 	};
 	int baseType;
 	int subType;
@@ -76,6 +80,7 @@ struct Token {
 		GEO_RECT,
 		GEO_POLYGON,
 		GEO_PATH,
+		GEO_POINT,
 		REGION,
 		REGION_EXCLUSIVE_CELLS,
 		QUERY_EXCLUSIVE_CELLS,
@@ -152,6 +157,8 @@ public:
 		const sserialize::spatial::GeoHierarchySubGraph & ghsg);
 	~AdvancedCellOpTree();
 	void parse(const std::string & str);
+	///remove potential harmless queries
+	void clean(double maxDilation);
 	template<typename T_CQR_TYPE>
 	T_CQR_TYPE calc();
 public:
@@ -200,6 +207,7 @@ private:
 		CQRType calcRect(Node * node);
 		CQRType calcPolygon(Node * node);
 		CQRType calcPath(Node * node);
+		CQRType calcPoint(Node * node);
 		CQRType calcRegionExclusiveCells(Node * node);
 		CQRType calcRegion(Node * node);
 		CQRType calcCell(Node * node);
@@ -235,7 +243,13 @@ AdvancedCellOpTree::calc() {
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRect(AdvancedCellOpTree::Node* node) {
-	return m_ctc.cqrFromRect<CQRType>(sserialize::spatial::GeoRect(node->value, true));
+	sserialize::spatial::GeoRect rect(node->value, true);
+	if (rect.lengthInM() < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX) {
+		return T_CQR_TYPE( m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon::fromRect(rect), CQRFromPolygon::AC_AUTO) );
+	}
+	else {
+		return m_ctc.cqrFromRect<CQRType>(rect);
+	}
 }
 
 template<typename T_CQR_TYPE>
@@ -300,7 +314,10 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 		return CQRType();
 	}
 	double radius(tmp[0]);
-	if (tmp.size() == 5) {
+	if (tmp.size() == 3) {
+		return CQRType( m_csq.cqrfp().cqr(sserialize::spatial::GeoPoint(tmp[1], tmp[2]), radius, CQRFromPolygon::AC_AUTO) );
+	}
+	else if (tmp.size() == 5) {
 		sserialize::spatial::GeoPoint startPoint(tmp[1], tmp[2]), endPoint(tmp[3], tmp[4]);
 		return m_ctc.cqrBetween<CQRType>(startPoint, endPoint, radius);
 	}
@@ -325,6 +342,12 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 			}
 		}
 	}
+}
+
+template<typename T_CQR_TYPE>
+T_CQR_TYPE
+AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPoint(AdvancedCellOpTree::Node* node) {
+	return calcPath(node);
 }
 
 template<typename T_CQR_TYPE>
@@ -512,6 +535,8 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 			return calcPolygon(node);
 		case Node::PATH:
 			return calcPath(node);
+		case Node::POINT:
+			return calcPoint(node);
 		case Node::ITEM:
 			return calcItem(node);
 		default:

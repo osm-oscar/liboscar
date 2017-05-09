@@ -8,12 +8,20 @@
 #include <sserialize/Static/GeoHierarchy.h>
 #include <sserialize/Static/TriangulationGeoHierarchyArrangement.h>
 #include <sserialize/Static/TracGraph.h>
+#include <sserialize/iterator/TransformIterator.h>
 #include <liboscar/constants.h>
 #include <liboscar/OsmIdType.h>
 #define LIBOSCAR_OSM_KEY_VALUE_OBJECT_STORE_VERSION 7
 
 namespace liboscar {
 namespace Static {
+
+namespace detail {
+	class ItemId2OsmId;
+}
+
+class OsmKeyValueObjectStorePrivate;
+class OsmKeyValueObjectStoreItem;
 
 /** Storage layout
   *
@@ -48,9 +56,6 @@ namespace Static {
   *
   *
   */
-
-class OsmKeyValueObjectStorePrivate;
-class OsmKeyValueObjectStoreItem;
 
 class OsmKeyValueObjectStorePayload {
 	OsmIdType m_osmId;
@@ -105,6 +110,9 @@ public:
 	const_iterator cbegin() const;
 	const_iterator end() const;
 	const_iterator cend() const;
+	
+	template<typename T_ID_ITERATOR>
+	sserialize::TransformIterator<detail::ItemId2OsmId, Item, T_ID_ITERATOR> id2ItemIterator(const T_ID_ITERATOR & it) const;
 	
 	uint32_t toInternalId(uint32_t itemId) const;
 	
@@ -261,6 +269,24 @@ public:
 	std::ostream & printStats(std::ostream & out) const;
 };
 
+namespace detail {
+	class ItemId2OsmId {
+	public:
+		ItemId2OsmId(const OsmKeyValueObjectStore & store) : m_store(store) {}
+		~ItemId2OsmId() {}
+	public:
+		OsmKeyValueObjectStore::Item operator()(uint32_t id) const;
+	private:
+		OsmKeyValueObjectStore m_store;
+	};
+}
+
+
+template<typename T_ID_ITERATOR>
+sserialize::TransformIterator<detail::ItemId2OsmId, OsmKeyValueObjectStore::Item, T_ID_ITERATOR> OsmKeyValueObjectStore::id2ItemIterator(const T_ID_ITERATOR & it) const {
+	typedef sserialize::TransformIterator<detail::ItemId2OsmId, OsmKeyValueObjectStore::Item, T_ID_ITERATOR> return_value;
+	return return_value(detail::ItemId2OsmId(*this), it);
+}
 
 }}//end namespace
 

@@ -240,6 +240,9 @@ Token Tokenizer::next() {
 			else if (tmp == "path") {
 				t.type = Token::GEO_PATH;
 			}
+			else if (tmp == "point") {
+				t.type = Token::GEO_POINT;
+			}
 			for(; m_state.it != m_state.end;) {
 				if (isWhiteSpace(*m_state.it) || (opSeparates && isOperator(*m_state.it)) || isScope(*m_state.it)) {
 					break;
@@ -424,6 +427,12 @@ detail::AdvancedCellOpTree::Node* Parser::parseSingleQ() {
 	{
 		pop();
 		return new Node(Node::LEAF, Node::PATH, t.value);
+		break;
+	}
+	case Token::GEO_POINT:
+	{
+		pop();
+		return new Node(Node::LEAF, Node::POINT, t.value);
 		break;
 	}
 	case Token::GEO_RECT:
