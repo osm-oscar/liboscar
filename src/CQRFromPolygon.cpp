@@ -123,10 +123,10 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 		for(uint32_t itemId : idx) {
 			sserialize::spatial::GeoShapeType gst = m_store.geoShapeType(itemId);
 			bool contained = false;
-			if (gst == sserialize::spatial::GS_STATIC_POLYGON) {
+			if (gst == sserialize::spatial::GS_POLYGON) {
 				contained = m_store.geoShape(itemId).get<sserialize::Static::spatial::GeoPolygon>()->contains(gp);
 			}
-			else if (gst == sserialize::spatial::GS_STATIC_MULTI_POLYGON) {
+			else if (gst == sserialize::spatial::GS_MULTI_POLYGON) {
 				contained = m_store.geoShape(itemId).get<sserialize::Static::spatial::GeoMultiPolygon>()->contains(gp);
 			}
 			if (contained) {
