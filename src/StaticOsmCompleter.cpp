@@ -266,7 +266,7 @@ OsmCompleter::cqrComplete(
 	else {
 		AdvancedCellOpTree opTree(cmp, cqrd, csq, ghsg);
 		opTree.parse(query);
-		return opTree.calc<sserialize::TreedCellQueryResult>().toCQR(threadCount);
+		return opTree.calc<sserialize::TreedCellQueryResult>(threadCount).toCQR(threadCount);
 	}
 }
 
