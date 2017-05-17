@@ -721,6 +721,14 @@ const sserialize::spatial::GeoHierarchySubGraph & AdvancedCellOpTree::CalcBase::
 	return m_ghsg;
 }
 
+uint32_t AdvancedCellOpTree::CalcBase::threadCount() const {
+	return m_threadCount;
+}
+
+sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::toCQR(const sserialize::TreedCellQueryResult & cqr) const {
+	return cqr.toCQR( this->threadCount() );
+}
+
 void AdvancedCellOpTree::parse(const std::string& str) {
 	if (m_root) {
 		delete m_root;
@@ -743,7 +751,7 @@ sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcDilationOp(AdvancedCellOpTree::Node* node) {
 	double diameter = ::atof(node->value.c_str())*1000;
 	sserialize::TreedCellQueryResult cqr( calc(node->children.front()) );
-	return sserialize::TreedCellQueryResult( m_cqrd.dilate(cqr.toCQR(), diameter), cqr.geoHierarchy(), cqr.idxStore() ) + cqr;
+	return sserialize::TreedCellQueryResult( m_cqrd.dilate(toCQR(cqr), diameter), cqr.geoHierarchy(), cqr.idxStore() ) + cqr;
 }
 
 
@@ -758,7 +766,7 @@ template<>
 sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRegionDilationOp(AdvancedCellOpTree::Node* node) {
 	sserialize::TreedCellQueryResult cqr( calc(node->children.front()) );
-	return sserialize::TreedCellQueryResult( CalcBase::calcDilateRegionOp(node, cqr.toCQR()), cqr.geoHierarchy(), cqr.idxStore() );
+	return sserialize::TreedCellQueryResult( CalcBase::calcDilateRegionOp(node, toCQR(cqr)), cqr.geoHierarchy(), cqr.idxStore() );
 }
 
 template<>
@@ -772,7 +780,7 @@ template<>
 sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcBetweenOp(AdvancedCellOpTree::Node* node) {
 	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 2);
-	return sserialize::TreedCellQueryResult( CalcBase::calcBetweenOp(calc(node->children.front()).toCQR(), calc(node->children.back()).toCQR()) );
+	return sserialize::TreedCellQueryResult( CalcBase::calcBetweenOp(toCQR(calc(node->children.front())), toCQR(calc(node->children.back()))) );
 }
 
 template<>
@@ -786,7 +794,7 @@ template<>
 sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcCompassOp(AdvancedCellOpTree::Node* node) {
 	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 1);
-	return sserialize::TreedCellQueryResult( CalcBase::calcCompassOp(node, calc(node->children.front()).toCQR()) );
+	return sserialize::TreedCellQueryResult( CalcBase::calcCompassOp(node, toCQR(calc(node->children.front()))) );
 }
 
 }//end namespace

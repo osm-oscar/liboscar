@@ -160,7 +160,7 @@ public:
 	///remove potential harmless queries
 	void clean(double maxDilation);
 	template<typename T_CQR_TYPE>
-	T_CQR_TYPE calc();
+	T_CQR_TYPE calc(uint32_t threadCount = 1);
 public:
 	///get the root node, do not alter it!
 	const Node * root() const {
@@ -171,22 +171,26 @@ private:
 		CalcBase(sserialize::Static::CellTextCompleter & ctc,
 			const sserialize::Static::CQRDilator & cqrd,
 			const CQRFromComplexSpatialQuery & csq,
-			const sserialize::spatial::GeoHierarchySubGraph & ghsg) :
+			const sserialize::spatial::GeoHierarchySubGraph & ghsg,
+			uint32_t threadCount) :
 		m_ctc(ctc),
 		m_cqrd(cqrd),
 		m_csq(csq),
-		m_ghsg(ghsg)
+		m_ghsg(ghsg),
+		m_threadCount(threadCount)
 		{}
 		sserialize::Static::CellTextCompleter & m_ctc;
 		const sserialize::Static::CQRDilator & m_cqrd;
 		const CQRFromComplexSpatialQuery & m_csq;
 		const sserialize::spatial::GeoHierarchySubGraph & m_ghsg;
+		uint32_t m_threadCount;
 		
 		const sserialize::Static::ItemIndexStore & idxStore() const;
 		const sserialize::Static::spatial::GeoHierarchy & gh() const;
 		const liboscar::Static::OsmKeyValueObjectStore & store() const;
 		const sserialize::spatial::GeoHierarchySubGraph & ghsg() const;
-		
+		uint32_t threadCount() const;
+		sserialize::CellQueryResult toCQR(const sserialize::TreedCellQueryResult & cqr) const;
 		sserialize::CellQueryResult calcBetweenOp(const sserialize::CellQueryResult & c1, const sserialize::CellQueryResult & c2);
 		sserialize::CellQueryResult calcCompassOp(Node * node, const sserialize::CellQueryResult & cqr);
 		sserialize::ItemIndex calcDilateRegionOp(Node * node, const sserialize::CellQueryResult & cqr);
@@ -198,8 +202,9 @@ private:
 		Calc(sserialize::Static::CellTextCompleter & ctc,
 			const sserialize::Static::CQRDilator & cqrd,
 			const CQRFromComplexSpatialQuery & csq,
-			const sserialize::spatial::GeoHierarchySubGraph & ghsg) :
-		CalcBase(ctc, cqrd, csq, ghsg)
+			const sserialize::spatial::GeoHierarchySubGraph & ghsg,
+			uint32_t threadCount) :
+		CalcBase(ctc, cqrd, csq, ghsg, threadCount)
 		{}
 		CQRType calc(Node * node);
 		CQRType calcItem(Node * node);
@@ -229,10 +234,10 @@ private:
 
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
-AdvancedCellOpTree::calc() {
+AdvancedCellOpTree::calc(uint32_t threadCount) {
 	typedef T_CQR_TYPE CQRType;
 	if (m_root) {
-		Calc<CQRType> calculator(m_ctc, m_cqrd, m_csq, m_ghsg);
+		Calc<CQRType> calculator(m_ctc, m_cqrd, m_csq, m_ghsg, threadCount);
 		return calculator.calc( m_root );
 	}
 	else {
