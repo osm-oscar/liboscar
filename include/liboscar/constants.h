@@ -10,8 +10,7 @@ typedef enum {
 
 typedef enum {
 	IT_SIMPLE_SHAPE,
-	IT_SHAPE_RELATION,
-	IT_
+	IT_SHAPE_RELATION
 } InternalTypes;
 
 enum FileConfig {
