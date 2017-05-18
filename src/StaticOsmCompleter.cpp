@@ -129,7 +129,7 @@ OsmItemSetIterator OsmCompleter::partialComplete(const std::string & query, cons
 	}
 }
 
-void OsmCompleter::energize() {
+void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsgType) {
 	for(uint32_t i = FC_BEGIN; i < FC_END; ++i) {
 		bool cmp;
 		std::string fn;
@@ -228,8 +228,7 @@ void OsmCompleter::energize() {
 		m_tagPhraseCompleter = sserialize::RCPtrWrapper<TagPhraseCompleter>( new TagPhraseCompleter() );
 	}
 
-	sserialize::spatial::GeoHierarchySubGraph::Type ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_PASS_THROUGH;
-	if (m_store.geoHierarchy().cellSize() >= MEMORY_BASED_SUBSET_CREATOR_MIN_CELL_COUNT) {
+	if (ghsgType == sserialize::spatial::GeoHierarchySubGraph::T_INVALID && m_store.geoHierarchy().cellSize() >= MEMORY_BASED_SUBSET_CREATOR_MIN_CELL_COUNT) {
 		ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_IN_MEMORY;
 	}
 	m_ghsg = sserialize::spatial::GeoHierarchySubGraph(m_store.geoHierarchy(), indexStore(), ghsgType);

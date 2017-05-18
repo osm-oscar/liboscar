@@ -57,7 +57,7 @@ public:
 	virtual ~OsmCompleter();
 	bool setAllFilesFromPrefix(const std::string & fileName);
 	///throws an exception if something goes wrong
-	void energize();
+	void energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_INVALID);
 
 	inline const TextSearch & textSearch() const { return m_textSearch; }
 	inline const GeoSearch & geoSearch() const { return m_geoSearch; }
