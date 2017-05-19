@@ -33,6 +33,7 @@
   * QUERY_EXCLUSIVE_CELLS := $qec:<minDirectParents>:<maxDirectParents>
   * CONSTRAINED_REGION_EXCLUSIVE_CELLS := $crec:<storeId>,<rect-definition>
   * CELL := $cell:<cellId>
+  * CELLS := $cells:<cellids>
   */
 namespace liboscar {
 namespace detail {
@@ -46,7 +47,7 @@ struct Node {
 		QUERY_EXCLUSIVE_CELLS,
 		RECT, POLYGON, PATH, POINT,
 		REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS,
-		CELL,
+		CELL, CELLS,
 		STRING, ITEM, STRING_ITEM, STRING_REGION
 	};
 	int baseType;
@@ -86,6 +87,7 @@ struct Token {
 		QUERY_EXCLUSIVE_CELLS,
 		CONSTRAINED_REGION_EXCLUSIVE_CELLS,
 		CELL,
+		CELLS,
 		STRING,
 		ITEM,
 		STRING_ITEM,
@@ -216,6 +218,7 @@ private:
 		CQRType calcRegionExclusiveCells(Node * node);
 		CQRType calcRegion(Node * node);
 		CQRType calcCell(Node * node);
+		CQRType calcCells(Node * node);
 		CQRType calcUnaryOp(Node * node);
 		CQRType calcDilationOp(Node * node);
 		CQRType calcRegionDilationOp(Node * node);
@@ -380,6 +383,16 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcCell(AdvancedCellOpTree::Node* node) {
 
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
+AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcCells(AdvancedCellOpTree::Node* node) {
+	std::vector<uint32_t> cellIds;
+	if (node->value.size()) {
+		
+	}
+	return m_ctc.cqrFromCellIds<CQRType>(cellIds.cbegin(), cellIds.cend());
+}
+
+template<typename T_CQR_TYPE>
+T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcItem(AdvancedCellOpTree::Node * node) {
 	uint32_t id = atoi(node->value.c_str());
 	liboscar::Static::OsmKeyValueObjectStore::Item item(store().at(id));
@@ -534,6 +547,8 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 			return calcRegionExclusiveCells(node);
 		case Node::CELL:
 			return calcCell(node);
+		case Node::CELLS:
+			return calcCells(node);
 		case Node::RECT:
 			return calcRect(node);
 		case Node::POLYGON:

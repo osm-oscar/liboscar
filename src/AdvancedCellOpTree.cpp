@@ -227,6 +227,9 @@ Token Tokenizer::next() {
 				t.type = Token::CELL;
 				opSeparates = true;
 			}
+			else if (tmp == "cells") {
+				t.type = Token::CELLS;
+			}
 			else if (tmp  == "item") {
 				t.type = Token::ITEM;
 				opSeparates = true;
@@ -410,6 +413,11 @@ detail::AdvancedCellOpTree::Node* Parser::parseSingleQ() {
 	{
 		pop();
 		return new Node(Node::LEAF, Node::CELL, t.value);
+	}
+	case Token::CELLS:
+	{
+		pop();
+		return new Node(Node::LEAF, Node::CELLS, t.value);
 	}
 	case Token::REGION:
 	{
