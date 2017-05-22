@@ -35,6 +35,12 @@ m_selectedGeoCompleter(0)
 
 OsmCompleter::~OsmCompleter() {}
 
+sserialize::UByteArrayAdapter OsmCompleter::data(FileConfig fc) const {
+	if (m_data.count(fc)) {
+		return m_data.at(fc);
+	}
+	return sserialize::UByteArrayAdapter();
+}
 
 bool OsmCompleter::setAllFilesFromPrefix(const std::string & filePrefix) {
 	if (sserialize::MmappedFile::isDirectory(filePrefix)) {

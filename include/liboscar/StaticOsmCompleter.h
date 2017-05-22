@@ -55,6 +55,7 @@ private:
 public:
 	OsmCompleter();
 	virtual ~OsmCompleter();
+	sserialize::UByteArrayAdapter data(liboscar::FileConfig fc) const;
 	bool setAllFilesFromPrefix(const std::string & fileName);
 	///throws an exception if something goes wrong
 	void energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_INVALID);
