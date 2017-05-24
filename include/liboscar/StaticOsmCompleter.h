@@ -60,9 +60,11 @@ private:
 	sserialize::StringCompleter getItemsCompleter() const;
 public:
 	OsmCompleter();
-	OsmCompleter(const OsmCompleter & other) = delete;
 	virtual ~OsmCompleter();
+#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
+	OsmCompleter(const OsmCompleter & other) = delete;
 	OsmCompleter & operator=(const OsmCompleter & other) = delete;
+#endif
 	sserialize::UByteArrayAdapter data(liboscar::FileConfig fc) const;
 	bool setAllFilesFromPrefix(const std::string & fileName);
 	///throws an exception if something goes wrong
