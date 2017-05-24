@@ -33,7 +33,13 @@ OsmCompleter::OsmCompleter() :
 m_selectedGeoCompleter(0)
 {}
 
-OsmCompleter::~OsmCompleter() {}
+OsmCompleter::~OsmCompleter() {
+#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
+	for(auto & d : m_data) {
+		d.second.enableRefCounting();
+	}
+#endif
+}
 
 sserialize::UByteArrayAdapter OsmCompleter::data(FileConfig fc) const {
 	if (m_data.count(fc)) {
@@ -143,6 +149,13 @@ void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsg
 			m_data[i] = sserialize::UByteArrayAdapter::openRo(fn, cmp, MAX_SIZE_FOR_FULL_MMAP, 0);
 		}
 	}
+#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
+	for(auto & d : m_data) {
+		if (!d.second.disableRefCounting()) {
+			throw sserialize::IOException("liboscar::Static::OsmCompleter: could not disable data refcounting");
+		}
+	}
+#endif
 	
 	bool haveNeededData = m_data.count(FC_KV_STORE);
 	if (haveNeededData) {
