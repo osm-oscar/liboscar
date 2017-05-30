@@ -3,11 +3,11 @@
 #include <string>
 #include <ostream>
 #include <unordered_map>
-#include "constants.h"
-#include "StaticOsmItemSet.h"
-#include "tagcompleters.h"
-#include "TextSearch.h"
-#include "GeoSearch.h"
+#include <liboscar/constants.h>
+#include <liboscar/StaticOsmItemSet.h>
+#include <liboscar/tagcompleters.h>
+#include <liboscar/TextSearch.h>
+#include <liboscar/GeoSearch.h>
 #include <sserialize/Static/CellTextCompleter.h>
 #include <sserialize/search/GeoCompleter.h>
 #include <sserialize/spatial/GeoConstraintSetOpTreeEF.h>
