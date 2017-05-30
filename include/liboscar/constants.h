@@ -2,6 +2,12 @@
 #define LIBOSCAR_CONSTANTS_H
 #include <string>
 
+#ifdef WITH_LIBOSCAR_NO_DATA_REFCOUNTING
+	#define LIBOSCAR_NO_DATA_REFCOUNTING
+#else
+	#undef LIBOSCAR_NO_DATA_REFCOUNTING
+#endif
+
 namespace liboscar {
 
 typedef enum {

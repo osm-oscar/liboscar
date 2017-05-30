@@ -38,6 +38,7 @@ OsmCompleter::~OsmCompleter() {
 	for(auto & d : m_data) {
 		d.second.enableRefCounting();
 	}
+	m_store.enableRefCounting();
 #endif
 }
 
@@ -166,17 +167,24 @@ void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsg
 			sserialize::err("Static::OsmCompleter", std::string("Failed to initialize kvstore with the following error:\n") + std::string(e.what()));
 			haveNeededData = false;
 		}
-		m_geoCompleters.push_back(
-			sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter>(
-				new sserialize::spatial::GeoConstraintSetOpTreeSF<sserialize::GeoCompleter>(
-					sserialize::Static::GeoCompleter::fromDB(m_store)
-				)
-			)
-		);
 	}
 	if (!haveNeededData) {
 		throw sserialize::MissingDataException("OsmCompleter needs a KeyValueStore");
 	}
+	
+#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
+	if (!m_store.disableRefCounting()) {
+		throw sserialize::IOException("liboscar::Static::OsmCompleter: could not disable data refcounting");
+	}
+#endif
+	
+	m_geoCompleters.push_back(
+		sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter>(
+			new sserialize::spatial::GeoConstraintSetOpTreeSF<sserialize::GeoCompleter>(
+				sserialize::Static::GeoCompleter::fromDB(m_store)
+			)
+		)
+	);
 	
 	haveNeededData = m_data.count(FC_INDEX);
 	if (haveNeededData) {

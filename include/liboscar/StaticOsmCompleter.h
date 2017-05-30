@@ -3,6 +3,7 @@
 #include <string>
 #include <ostream>
 #include <unordered_map>
+#include "constants.h"
 #include "StaticOsmItemSet.h"
 #include "tagcompleters.h"
 #include "TextSearch.h"
@@ -11,12 +12,6 @@
 #include <sserialize/search/GeoCompleter.h>
 #include <sserialize/spatial/GeoConstraintSetOpTreeEF.h>
 #include <sserialize/Static/GeoHierarchySubGraph.h>
-
-#ifdef WITH_LIBOSCAR_NO_DATA_REFCOUNTING
-	#define LIBOSCAR_NO_DATA_REFCOUNTING
-#else
-	#undef LIBOSCAR_NO_DATA_REFCOUNTING
-#endif
 
 namespace liboscar {
 namespace Static {

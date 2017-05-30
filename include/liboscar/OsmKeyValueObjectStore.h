@@ -96,6 +96,10 @@ public:
 	OsmKeyValueObjectStore(const sserialize::UByteArrayAdapter & data);
 	virtual ~OsmKeyValueObjectStore();
 	OsmKeyValueObjectStore & operator=(const OsmKeyValueObjectStore & other);
+	#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
+	bool disableRefCounting();
+	void enableRefCounting();
+	#endif
 	uint32_t size() const;
 	const KeyValueObjectStore & kvStore() const;
 	const KeyStringTable & keyStringTable() const;
@@ -214,7 +218,13 @@ public:
 	std::string getAllGeoPointsAsString() const;
 };
 
-class OsmKeyValueObjectStorePrivate: public  sserialize::RefCountObject {
+class OsmKeyValueObjectStorePrivate: public
+#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
+	sserialize::RefCountObjectWithDisable
+#else
+	sserialize::RefCountObject
+#endif
+{
 public:
 	typedef sserialize::Static::KeyValueObjectStore::ValueStringTable ValueStringTable;
 	typedef sserialize::Static::KeyValueObjectStore::KeyStringTable KeyStringTable;

@@ -38,6 +38,16 @@ OsmKeyValueObjectStore & OsmKeyValueObjectStore::operator=(const OsmKeyValueObje
 	return *this;
 }
 
+#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
+bool OsmKeyValueObjectStore::disableRefCounting() {
+	return priv()->disableRc();
+}
+
+void OsmKeyValueObjectStore::enableRefCounting() {
+	priv()->enableRc();
+}
+#endif
+
 uint32_t OsmKeyValueObjectStore::size() const {
 	return priv()->size();
 }
