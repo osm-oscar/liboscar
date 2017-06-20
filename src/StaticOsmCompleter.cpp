@@ -34,6 +34,7 @@ m_selectedGeoCompleter(0)
 {}
 
 OsmCompleter::~OsmCompleter() {
+	//BUG: this will result in use-after-free
 #ifdef LIBOSCAR_NO_DATA_REFCOUNTING
 	for(auto & d : m_data) {
 		d.second.enableRefCounting();
@@ -152,9 +153,7 @@ void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsg
 	}
 #ifdef LIBOSCAR_NO_DATA_REFCOUNTING
 	for(auto & d : m_data) {
-		if (!d.second.disableRefCounting()) {
-			throw sserialize::IOException("liboscar::Static::OsmCompleter: could not disable data refcounting");
-		}
+		d.second.disableRefCounting();
 	}
 #endif
 	
@@ -173,9 +172,7 @@ void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsg
 	}
 	
 #ifdef LIBOSCAR_NO_DATA_REFCOUNTING
-	if (!m_store.disableRefCounting()) {
-		throw sserialize::IOException("liboscar::Static::OsmCompleter: could not disable data refcounting");
-	}
+	m_store.disableRefCounting();
 #endif
 	
 	m_geoCompleters.push_back(

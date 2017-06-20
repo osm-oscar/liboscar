@@ -78,14 +78,19 @@ public:
 	inline sserialize::BoundedCompactUintArray cells() const { return m_cells; }
 };
   
-class OsmKeyValueObjectStore: public sserialize::RCWrapper<OsmKeyValueObjectStorePrivate> {
+class OsmKeyValueObjectStore {
 public:
-	typedef sserialize::RCWrapper<OsmKeyValueObjectStorePrivate> MyBaseClass;
 	typedef OsmKeyValueObjectStoreItem Item;
 	typedef sserialize::Static::KeyValueObjectStore KeyValueObjectStore;
 	typedef KeyValueObjectStore::ValueStringTable ValueStringTable;
 	typedef KeyValueObjectStore::KeyStringTable KeyStringTable;
 	typedef sserialize::ReadOnlyAtStlIterator<const OsmKeyValueObjectStore*, OsmKeyValueObjectStore::Item, uint32_t> const_iterator;
+private:
+	#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
+	typedef sserialize::RCPtrWrapper<OsmKeyValueObjectStorePrivate, true> MyPrivatePtr;
+	#else
+	typedef sserialize::RCPtrWrapper<OsmKeyValueObjectStorePrivate, false> MyPrivatePtr;
+	#endif
 public:
 	static constexpr uint32_t npos = 0xFFFFFFFF;
 private:
@@ -97,7 +102,7 @@ public:
 	virtual ~OsmKeyValueObjectStore();
 	OsmKeyValueObjectStore & operator=(const OsmKeyValueObjectStore & other);
 	#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
-	bool disableRefCounting();
+	void disableRefCounting();
 	void enableRefCounting();
 	#endif
 	uint32_t size() const;
@@ -158,6 +163,11 @@ public: //dummy functions
 	///matches the keyIds (Fgst does not use these!
 	bool match(uint32_t pos, const sserialize::ItemIndex strIds) const;
 	std::string getName() const;
+private:
+	const MyPrivatePtr & priv() const;
+	MyPrivatePtr & priv();
+private:
+	MyPrivatePtr m_priv;
 };
 
 class OsmKeyValueObjectStoreItem: public sserialize::Static::KeyValueObjectStoreItem {

@@ -16,35 +16,43 @@ OsmKeyValueObjectStore::Item ItemId2OsmId::operator()(uint32_t id) const {
 
 constexpr uint32_t OsmKeyValueObjectStore::npos;
 
-OsmKeyValueObjectStore::OsmKeyValueObjectStore(OsmKeyValueObjectStorePrivate * data): MyBaseClass(data) {}
+OsmKeyValueObjectStore::OsmKeyValueObjectStore(OsmKeyValueObjectStorePrivate * data): m_priv(data) {}
 
 OsmKeyValueObjectStore::OsmKeyValueObjectStore() : 
-MyBaseClass( new OsmKeyValueObjectStorePrivate() )
+m_priv( new OsmKeyValueObjectStorePrivate() )
 {}
 
 OsmKeyValueObjectStore::OsmKeyValueObjectStore(const OsmKeyValueObjectStore & other) : 
-MyBaseClass( other )
+m_priv( other.m_priv)
 {}
 
 OsmKeyValueObjectStore::OsmKeyValueObjectStore(const sserialize::UByteArrayAdapter & data) :
-MyBaseClass( new OsmKeyValueObjectStorePrivate(data) )
+m_priv( new OsmKeyValueObjectStorePrivate(data) )
 {}
 
 OsmKeyValueObjectStore::~OsmKeyValueObjectStore() {}
 
 
 OsmKeyValueObjectStore & OsmKeyValueObjectStore::operator=(const OsmKeyValueObjectStore & other) {
-	MyBaseClass::operator=(other);
+	m_priv = other.m_priv;
 	return *this;
 }
 
+const OsmKeyValueObjectStore::MyPrivatePtr & OsmKeyValueObjectStore::priv() const {
+	return m_priv;
+}
+
+OsmKeyValueObjectStore::MyPrivatePtr & OsmKeyValueObjectStore::priv() {
+	return m_priv;
+}
+
 #ifdef LIBOSCAR_NO_DATA_REFCOUNTING
-bool OsmKeyValueObjectStore::disableRefCounting() {
-	return priv()->disableRc();
+void OsmKeyValueObjectStore::disableRefCounting() {
+	priv().disableRC();
 }
 
 void OsmKeyValueObjectStore::enableRefCounting() {
-	priv()->enableRc();
+	priv().enableRC();
 }
 #endif
 
