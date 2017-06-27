@@ -25,9 +25,9 @@
   * BINARY_OP := - | + | / | ^ 
   * ITEM := $item:<itemId>
   * GEO_RECT := $geo:<rect-defintion>
-  * POINT := $point:lat:lon:[radius]
-  * POLYGON := $poly[]
-  * GEO_PATH := $path[]
+  * POINT := $point:radius,lat,lon
+  * POLYGON := $poly:[lat,lon]
+  * GEO_PATH := $path:radius,[lat,lon]
   * REGION := $region:<storeId>
   * REGION_EXCLUSIVE_CELLS := $rec:<storeId>
   * QUERY_EXCLUSIVE_CELLS := $qec:<minDirectParents>:<maxDirectParents>
