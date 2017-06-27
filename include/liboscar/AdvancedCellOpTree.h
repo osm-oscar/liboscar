@@ -272,7 +272,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPolygon(AdvancedCellOpTree::Node* node
 			MyOut & operator++() { return *this; }
 			MyOut & operator*() { return *this; }
 			MyOut & operator=(const std::string & str) {
-				double t = ::atof(str.c_str());
+				double t = sserialize::stod(str);
 				if (m_firstCoord == std::numeric_limits<double>::max()) {
 					m_firstCoord = t;
 				}
@@ -309,8 +309,11 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 			MyOut & operator++() { return *this; }
 			MyOut & operator*() { return *this; }
 			MyOut & operator=(const std::string & str) {
-				double t = atof(str.c_str());
-				dest->push_back(t);
+				try {
+					double t = sserialize::stod(str);
+					dest->push_back(t);
+				}
+				catch (std::invalid_argument & e) {}
 				return *this;
 			}
 			MyOut(std::vector<double> * d) : dest(d) {}

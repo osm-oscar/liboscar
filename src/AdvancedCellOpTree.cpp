@@ -677,7 +677,7 @@ sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionOp(AdvancedC
 	const sserialize::Static::spatial::GeoHierarchy & gh = m_ctc.geoHierarchy();
 	const sserialize::Static::ItemIndexStore & idxStore = this->idxStore();
 
-	double th = ::atof(node->value.c_str());
+	double th = sserialize::stod(node->value.c_str());
 	if (th <= 0.0) {
 		return sserialize::ItemIndex();
 	}
@@ -749,7 +749,7 @@ void AdvancedCellOpTree::parse(const std::string& str) {
 template<>
 sserialize::CellQueryResult
 AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcDilationOp(AdvancedCellOpTree::Node* node) {
-	double diameter = ::atof(node->value.c_str())*1000;
+	double diameter = sserialize::stod(node->value.c_str())*1000;
 	sserialize::CellQueryResult cqr( calc(node->children.front()) );
 	return sserialize::CellQueryResult( m_cqrd.dilate(cqr, diameter), cqr.geoHierarchy(), cqr.idxStore() ) + cqr;
 }
@@ -757,7 +757,7 @@ AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcDilationOp(AdvancedCe
 template<>
 sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcDilationOp(AdvancedCellOpTree::Node* node) {
-	double diameter = ::atof(node->value.c_str())*1000;
+	double diameter = sserialize::stod(node->value.c_str())*1000;
 	sserialize::TreedCellQueryResult cqr( calc(node->children.front()) );
 	return sserialize::TreedCellQueryResult( m_cqrd.dilate(toCQR(cqr), diameter), cqr.geoHierarchy(), cqr.idxStore() ) + cqr;
 }
