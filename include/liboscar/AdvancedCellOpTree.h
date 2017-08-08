@@ -588,6 +588,8 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 			return calcRegionDilationOp(node);
 		case Node::COMPASS_OP:
 			return calcCompassOp(node);
+		case Node::RELEVANT_ELEMENT_OP:
+			return calcRelevantElementOp(node);
 		case Node::QUERY_EXCLUSIVE_CELLS:
 			return calcQueryExclusiveCells(node);
 		default:
