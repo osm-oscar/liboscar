@@ -27,7 +27,7 @@ bool Tokenizer::isWhiteSpace(char c) {
 }
 
 bool Tokenizer::isOperator(char c) {
-	return (c == '+' || c == '-' || c == '/' || c == '^' || c == '%' || c == ':');
+	return (c == '+' || c == '-' || c == '/' || c == '^' || c == '%' || c == ':' || c == '<' || c == '*');
 }
 
 std::string Tokenizer::readString() {
