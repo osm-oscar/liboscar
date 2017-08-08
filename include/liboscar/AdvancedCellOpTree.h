@@ -21,6 +21,7 @@
   * CELL_DILATION := %NUMBER%
   * REGION_DILATION := %#NUMBER%
   * COMPASS_OP := :^ | :v | :> | :< | :north-of | :east-of | :south-of | :west-of
+  * RELEVANT_ELEMENT_OP := *
   * BETWEEN_OP := <->
   * BINARY_OP := - | + | / | ^ 
   * ITEM := $item:<itemId>
@@ -42,7 +43,7 @@ namespace AdvancedCellOpTree {
 struct Node {
 	enum Type : int { UNARY_OP, BINARY_OP, LEAF};
 	enum OpType : int {
-		FM_CONVERSION_OP, CELL_DILATION_OP, REGION_DILATION_OP, COMPASS_OP,
+		FM_CONVERSION_OP, CELL_DILATION_OP, REGION_DILATION_OP, COMPASS_OP, RELEVANT_ELEMENT_OP,
 		SET_OP, BETWEEN_OP,
 		QUERY_EXCLUSIVE_CELLS,
 		RECT, POLYGON, PATH, POINT,
@@ -76,6 +77,7 @@ struct Token {
 		CELL_DILATION_OP,
 		REGION_DILATION_OP,
 		COMPASS_OP,
+		RELEVANT_ELEMENT_OP,
 		BETWEEN_OP,
 		SET_OP,
 		GEO_RECT,
@@ -195,6 +197,7 @@ private:
 		sserialize::CellQueryResult toCQR(const sserialize::TreedCellQueryResult & cqr) const;
 		sserialize::CellQueryResult calcBetweenOp(const sserialize::CellQueryResult & c1, const sserialize::CellQueryResult & c2);
 		sserialize::CellQueryResult calcCompassOp(Node * node, const sserialize::CellQueryResult & cqr);
+		sserialize::CellQueryResult calcRelevantElementOp(Node * node, const sserialize::CellQueryResult & cqr);
 		sserialize::ItemIndex calcDilateRegionOp(Node * node, const sserialize::CellQueryResult & cqr);
 	};
 
@@ -224,6 +227,7 @@ private:
 		CQRType calcRegionDilationOp(Node * node);
 		CQRType calcQueryExclusiveCells(Node * node);
 		CQRType calcCompassOp(Node * node);
+		CQRType calcRelevantElementOp(Node * node);
 		CQRType calcBinaryOp(Node * node);
 		CQRType calcBetweenOp(Node * node);
 	};
@@ -513,6 +517,14 @@ AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcCompassOp(AdvancedCel
 template<>
 sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcCompassOp(AdvancedCellOpTree::Node* node);
+
+template<>
+sserialize::CellQueryResult
+AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRelevantElementOp(AdvancedCellOpTree::Node* node);
+
+template<>
+sserialize::TreedCellQueryResult
+AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRelevantElementOp(AdvancedCellOpTree::Node* node);
 
 template<>
 sserialize::CellQueryResult

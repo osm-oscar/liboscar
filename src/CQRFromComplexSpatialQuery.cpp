@@ -26,6 +26,10 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 	return m_priv->compassOp(cqr, direction);
 }
 
+sserialize::CellQueryResult CQRFromComplexSpatialQuery::relevantElementOp(const sserialize::CellQueryResult & cqr) const {
+	return m_priv->relevantElementOp(cqr);
+}
+
 sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sserialize::CellQueryResult& cqr1, const sserialize::CellQueryResult& cqr2) const {
 	return m_priv->betweenOp(cqr1, cqr2);
 }
@@ -680,6 +684,32 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 	return sserialize::CellQueryResult();
 }
 
+sserialize::CellQueryResult CQRFromComplexSpatialQuery::relevantElementOp(const sserialize::CellQueryResult& cqr) const {
+	if (cqr.cellCount() == 0) {
+		return sserialize::CellQueryResult();
+	}
+	QueryItemType qit;
+	uint32_t id;
+	determineQueryItemType(cqr, qit, id);
+	
+	if (qit == QIT_INVALID) {
+		return sserialize::CellQueryResult();
+	}
+	
+	if (qit == QIT_ITEM) {
+		using ItemIndex = sserialize::ItemIndex;
+		auto cells = store().cells(id);
+		std::vector<ItemIndex> pm(cells.size(), ItemIndex({id}));
+		return sserialize::CellQueryResult(ItemIndex(), ItemIndex(cells.begin(), cells.end()), pm.begin(), geoHierarchy(), idxStore());
+	}
+	else if (qit == QIT_REGION) {
+		return sserialize::CellQueryResult(idxStore().at( geoHierarchy().regionCellIdxPtr(id) ), geoHierarchy(), idxStore());
+	}
+	else {
+		assert(false);
+	}
+	return sserialize::CellQueryResult();
+}
 
 void
 CQRFromComplexSpatialQuery::determineQueryItemTypeOld(const sserialize::CellQueryResult & cqr, QueryItemType & qit, uint32_t & id) const {

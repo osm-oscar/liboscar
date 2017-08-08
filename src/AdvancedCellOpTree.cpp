@@ -271,6 +271,13 @@ Token Tokenizer::next() {
 			}
 			return t;
 		}
+		case '*':
+		{
+			t.type = Token::RELEVANT_ELEMENT_OP;
+			++m_state.it;
+			t.value = "*";
+			return t;
+		}
 		case '<':
 		{
 			t.type = Token::BETWEEN_OP;
@@ -353,6 +360,9 @@ detail::AdvancedCellOpTree::Node* Parser::parseUnaryOps() {
 	case Token::COMPASS_OP:
 		nst = Node::COMPASS_OP;
 		break;
+	case Token::RELEVANT_ELEMENT_OP:
+		nst = Node::RELEVANT_ELEMENT_OP;
+		break;
 	case Token::QUERY_EXCLUSIVE_CELLS:
 		nst = Node::QUERY_EXCLUSIVE_CELLS;
 		break;
@@ -365,6 +375,7 @@ detail::AdvancedCellOpTree::Node* Parser::parseUnaryOps() {
 	case Token::CELL_DILATION_OP:
 	case Token::REGION_DILATION_OP:
 	case Token::COMPASS_OP:
+	case Token::RELEVANT_ELEMENT_OP:
 	case Token::QUERY_EXCLUSIVE_CELLS:
 	{
 		pop();
@@ -406,6 +417,7 @@ detail::AdvancedCellOpTree::Node* Parser::parseSingleQ() {
 	case Token::CELL_DILATION_OP:
 	case Token::REGION_DILATION_OP:
 	case Token::COMPASS_OP:
+	case Token::RELEVANT_ELEMENT_OP:
 	{
 		return parseUnaryOps();
 	}
@@ -508,6 +520,7 @@ detail::AdvancedCellOpTree::Node* Parser::parseQ() {
 		case Token::CELL_DILATION_OP:
 		case Token::REGION_DILATION_OP:
 		case Token::COMPASS_OP:
+		case Token::RELEVANT_ELEMENT_OP:
 		case Token::QUERY_EXCLUSIVE_CELLS:
 		{
 			curTokenNode = parseUnaryOps();
@@ -673,6 +686,11 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcCompassOp(liboscar
 	return m_csq.compassOp(cqr, direction);
 }
 
+sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcRelevantElementOp(liboscar::AdvancedCellOpTree::Node* node, const sserialize::CellQueryResult& cqr) {
+	assert(node && node->value == "*");
+	return m_csq.relevantElementOp(cqr);
+}
+
 sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionOp(AdvancedCellOpTree::Node * node, const sserialize::CellQueryResult & cqr) {
 	const sserialize::Static::spatial::GeoHierarchy & gh = m_ctc.geoHierarchy();
 	const sserialize::Static::ItemIndexStore & idxStore = this->idxStore();
@@ -804,5 +822,20 @@ AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcCompassOp(Advanc
 	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 1);
 	return sserialize::TreedCellQueryResult( CalcBase::calcCompassOp(node, toCQR(calc(node->children.front()))) );
 }
+
+template<>
+sserialize::CellQueryResult
+AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRelevantElementOp(AdvancedCellOpTree::Node* node) {
+	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 1);
+	return CalcBase::calcRelevantElementOp(node, calc(node->children.front()));
+}
+
+template<>
+sserialize::TreedCellQueryResult
+AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRelevantElementOp(AdvancedCellOpTree::Node* node) {
+	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 1);
+	return sserialize::TreedCellQueryResult( CalcBase::calcRelevantElementOp(node, toCQR(calc(node->children.front()))) );
+}
+
 
 }//end namespace

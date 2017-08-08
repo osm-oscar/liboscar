@@ -20,6 +20,7 @@ public:
 	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph & ssc, const CQRFromPolygon & cqrfp);
 	~CQRFromComplexSpatialQuery();
 	sserialize::CellQueryResult compassOp(const sserialize::CellQueryResult & cqr, UnaryOp direction) const;
+	sserialize::CellQueryResult relevantElementOp(const sserialize::CellQueryResult & cqr) const;
 	sserialize::CellQueryResult betweenOp(const sserialize::CellQueryResult & cqr1, const sserialize::CellQueryResult & cqr2) const;
 	const liboscar::CQRFromPolygon & cqrfp() const;
 private:
@@ -36,6 +37,7 @@ private:
 public:
 	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph& ssc, const liboscar::CQRFromPolygon& cqrfp);
 	virtual ~CQRFromComplexSpatialQuery();
+	sserialize::CellQueryResult relevantElementOp(const sserialize::CellQueryResult& cqr) const;
 	sserialize::CellQueryResult compassOp(const sserialize::CellQueryResult& cqr, liboscar::CQRFromComplexSpatialQuery::UnaryOp direction) const;
 	sserialize::CellQueryResult betweenOp(const sserialize::CellQueryResult & cqr1, const sserialize::CellQueryResult & cqr2) const;
 	const liboscar::CQRFromPolygon & cqrfp() const;
