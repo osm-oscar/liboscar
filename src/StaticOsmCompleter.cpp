@@ -144,13 +144,30 @@ OsmItemSetIterator OsmCompleter::partialComplete(const std::string & query, cons
 }
 
 void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsgType) {
+	#ifdef __LP64__
+	//use up to 1 TiB of address space on 64 Bit machines
+	uint64_t maxFullMmapSize = uint64_t(1024*1024)*uint64_t(1024*1024);
+	#else
+	//use up to 1 GiB of address space on 32 Bit machines
+	uint64_t maxFullMmapSize = 1024*1024*1024; 
+	#endif
+	
 	for(uint32_t i = FC_BEGIN; i < FC_END; ++i) {
 		bool cmp;
 		std::string fn;
 		if (fileNameFromPrefix(m_filesDir, (FileConfig)i, fn, cmp)) {
-			m_data[i] = sserialize::UByteArrayAdapter::openRo(fn, cmp, MAX_SIZE_FOR_FULL_MMAP, 0);
+			uint64_t fileSize = sserialize::MmappedFile::fileSize(fn);
+			
+			if (fileSize >= maxFullMmapSize) {
+				m_data[i] = sserialize::UByteArrayAdapter::openRo(fn, cmp, 0, 0);
+			}
+			else {
+				m_data[i] = sserialize::UByteArrayAdapter::openRo(fn, cmp, maxFullMmapSize, 0);
+				maxFullMmapSize -= fileSize;
+			}
 		}
 	}
+
 #ifdef LIBOSCAR_NO_DATA_REFCOUNTING
 	for(auto & d : m_data) {
 		d.second.disableRefCounting();
