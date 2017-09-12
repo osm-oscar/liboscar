@@ -19,10 +19,15 @@ typedef enum {
 	IT_SHAPE_RELATION
 } InternalTypes;
 
+///files are ordered according to their "importance" to be mapped into memory
 enum FileConfig {
 	FC_INVALID=0, FC_BEGIN=1,
-	FC_INDEX=1, FC_KV_STORE=2, FC_TAGSTORE=3,
-	FC_TEXT_SEARCH=4, FC_GEO_SEARCH=5, FC_END=6,
+	FC_INDEX=1,
+	FC_TEXT_SEARCH=2,
+	FC_KV_STORE=3,
+	FC_TAGSTORE=4,
+	FC_GEO_SEARCH=5,
+	FC_END=6,
 	FC_TAGSTORE_PHRASES=7
 };
 
