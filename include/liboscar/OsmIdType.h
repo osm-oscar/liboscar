@@ -11,6 +11,7 @@ private:
 	int64_t m_d;
 public:
 	OsmIdType() : OsmIdType(-1, liboscar::OSMIT_INVALID) {}
+	//BUG: if id < 0, then left shift is undefined
 	OsmIdType(int64_t id, liboscar::OsmItemTypes type) : m_d((id << 2) | type) {}
 	OsmIdType(int64_t raw) : m_d(raw) {}
 	OsmIdType(const sserialize::UByteArrayAdapter & d) : OsmIdType(d.getVlPackedInt64(0)) {}

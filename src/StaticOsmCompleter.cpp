@@ -34,7 +34,6 @@ m_selectedGeoCompleter(0)
 {}
 
 OsmCompleter::~OsmCompleter() {
-	//BUG: this will result in use-after-free
 #ifdef LIBOSCAR_NO_DATA_REFCOUNTING
 	for(auto & d : m_data) {
 		d.second.enableRefCounting();
