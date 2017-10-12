@@ -327,7 +327,7 @@ OsmCompleter::clusteredComplete(
 	uint32_t threadCount)
 {
 	sserialize::CellQueryResult r = cqrComplete(query, ghsg, treedCQR, threadCount);
-	return ghsg.subSet(r, r.cellCount() > minCq4SparseSubSet);
+	return ghsg.subSet(r, r.cellCount() > minCq4SparseSubSet, threadCount);
 }
 
 sserialize::Static::spatial::GeoHierarchy::SubSet

@@ -825,7 +825,7 @@ CQRFromComplexSpatialQuery::determineQueryItemType(const sserialize::CellQueryRe
 
 detail::CQRFromComplexSpatialQuery::SubSet
 CQRFromComplexSpatialQuery::createSubSet(const sserialize::CellQueryResult cqr) const {
-	return m_ssc.subSet(cqr, false);
+	return m_ssc.subSet(cqr, false, 1);
 }
 
 detail::CQRFromComplexSpatialQuery::SubSet::NodePtr
