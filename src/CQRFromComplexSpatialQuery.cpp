@@ -787,6 +787,7 @@ void
 CQRFromComplexSpatialQuery::determineQueryItemType(const sserialize::CellQueryResult& cqr, QueryItemType& qit, uint32_t & id) const {
 	if (!cqr.cellCount()) {
 		qit = QIT_INVALID;
+		return;
 	}
 
 	Stat best = Stat::min();
