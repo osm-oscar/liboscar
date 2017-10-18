@@ -816,6 +816,10 @@ CQRFromComplexSpatialQuery::determineQueryItemType(const sserialize::CellQueryRe
 	//check if this could be a item query
 	if (best.fmc < best.rcc && best.pmc + best.fmc < m_itemQueryCellCountTh) {
 		sserialize::ItemIndex items( cqr.flaten() );
+		if (!items.size()) {
+			cqr.dump(std::cerr);
+			SSERIALIZE_CHEAP_ASSERT(false);
+		}
 		if (items.size() < m_itemQueryItemCountTh) {
 			qit = QIT_ITEM;
 			id = determineRelevantItem( items );
