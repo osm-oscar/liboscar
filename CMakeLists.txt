@@ -86,7 +86,7 @@ SET(LIBOSCAR_LINK_LIBS
 	"boost_system"
 )
 
-add_library(${PROJECT_NAME} SHARED ${LIBOSCAR_SOURCES_CPP})
+add_library(${PROJECT_NAME} STATIC ${LIBOSCAR_SOURCES_CPP})
 target_link_libraries(${PROJECT_NAME} ${LIBOSCAR_LINK_LIBS}) 
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${LIBOSCAR_COMPILE_DEFINITIONS})
 add_dependencies(${PROJECT_NAME} sserialize)
