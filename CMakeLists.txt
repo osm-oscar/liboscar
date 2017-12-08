@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 project(liboscar)
 
 set(CMAKE_MODULE_PATH
@@ -6,13 +6,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/cmake/
 ${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/cmake/
 )
 
-INCLUDE(AddTargetProperties)
-
-set(MY_C_FLAGS "-std=c99")
-set(MY_CXX_FLAGS "-std=gnu++14")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MY_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MY_CXX_FLAGS}")
+include(AddTargetProperties)
+include(set_highest_cpp)
 
 find_package(LIBRT)
 
