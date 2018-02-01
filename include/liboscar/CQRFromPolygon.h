@@ -262,7 +262,7 @@ sserialize::CellQueryResult CQRFromPolygon::intersectingCellsPolygonItem(const s
 	
 	sserialize::ItemIndex fmIdx(std::move(fullMatchesSorted));
 	sserialize::ItemIndex pmIdx(std::move(partialMatchesSorted));
-	return sserialize::CellQueryResult(fmIdx, pmIdx, partialMatchesIdx.cbegin(), geoHierarchy(), idxStore());
+	return sserialize::CellQueryResult(fmIdx, pmIdx, partialMatchesIdx.cbegin(), geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
 };
 
 }}//end namespace liboscar::detail

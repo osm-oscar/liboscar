@@ -747,6 +747,10 @@ const sserialize::spatial::GeoHierarchySubGraph & AdvancedCellOpTree::CalcBase::
 	return m_ghsg;
 }
 
+sserialize::Static::CellTextCompleter & AdvancedCellOpTree::CalcBase::ctc() {
+		return m_ctc;
+}
+
 uint32_t AdvancedCellOpTree::CalcBase::threadCount() const {
 	return m_threadCount;
 }
@@ -769,7 +773,7 @@ sserialize::CellQueryResult
 AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcDilationOp(AdvancedCellOpTree::Node* node) {
 	double diameter = sserialize::stod(node->value.c_str())*1000;
 	sserialize::CellQueryResult cqr( calc(node->children.front()) );
-	return sserialize::CellQueryResult( m_cqrd.dilate(cqr, diameter), cqr.geoHierarchy(), cqr.idxStore() ) + cqr;
+	return sserialize::CellQueryResult( m_cqrd.dilate(cqr, diameter), cqr.geoHierarchy(), cqr.idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS) + cqr;
 }
 
 template<>
@@ -785,7 +789,7 @@ template<>
 sserialize::CellQueryResult
 AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationOp(AdvancedCellOpTree::Node* node) {
 	sserialize::CellQueryResult cqr( calc(node->children.front()) );
-	return sserialize::CellQueryResult( CalcBase::calcDilateRegionOp(node, cqr) , cqr.geoHierarchy(), cqr.idxStore() );
+	return sserialize::CellQueryResult( CalcBase::calcDilateRegionOp(node, cqr) , cqr.geoHierarchy(), cqr.idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
 }
 
 template<>

@@ -92,10 +92,10 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 	}
 	switch (ac) {
 	case liboscar::CQRFromPolygon::AC_POLYGON_BBOX_CELL_BBOX:
-		return sserialize::CellQueryResult(m_store.geoHierarchy().intersectingCells(idxStore(), gp.boundary()), m_store.geoHierarchy(), idxStore());
+		return sserialize::CellQueryResult(m_store.geoHierarchy().intersectingCells(idxStore(), gp.boundary()), m_store.geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
 	case liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX:
 	case liboscar::CQRFromPolygon::AC_POLYGON_CELL:
-		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), m_store.geoHierarchy(), idxStore());
+		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), m_store.geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX:
 		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemBBoxIntersectOp>(gp);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM:
@@ -139,7 +139,8 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 			sserialize::ItemIndex( std::vector<uint32_t>(1, cellId) ),
 			pmIdcs.begin(),
 			geoHierarchy(),
-			idxStore()
+			idxStore(),
+			sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS
 		);
 		return result;
 	}
