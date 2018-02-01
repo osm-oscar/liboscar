@@ -650,18 +650,12 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcBetweenOp(const ss
 		SSERIALIZE_EXPENSIVE_ASSERT(std::is_sorted(x.begin(), x.end()));
 		SSERIALIZE_EXPENSIVE_ASSERT(sserialize::is_strong_monotone_ascending(x.begin(), x.end()));
 		for(uint32_t y : x) {
-			if (y == 16800296) {
-				std::cout << "BAM" << std::endl;
-			}
-			SSERIALIZE_EXPENSIVE_ASSERT_NOT_EQUAL(y, 16800296);
+			SSERIALIZE_EXPENSIVE_ASSERT_NOT_EQUAL(y, uint32_t(16800296));
 		}
 	}
 	sserialize::ItemIndex tmp2 =  tmp.flaten();
 	for(uint32_t y : tmp2) {
-		if (y == 16800296) {
-			std::cout << "BAM" << std::endl;
-		}
-		SSERIALIZE_EXPENSIVE_ASSERT_NOT_EQUAL(y, 16800296);
+		SSERIALIZE_EXPENSIVE_ASSERT_NOT_EQUAL(y, uint32_t(16800296));
 	}
 	return tmp;
 #else
