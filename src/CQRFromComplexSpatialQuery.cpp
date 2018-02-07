@@ -854,7 +854,7 @@ CQRFromComplexSpatialQuery::determineRelevantRegion(const detail::CQRFromComplex
 }
 
 uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const SubSet & subSet, const SubSet::NodePtr & rPtr) const {
-	return determineRelevantItem( subSet.idx(rPtr) );
+	return determineRelevantItem( subSet.items(rPtr) );
 }
 
 uint32_t CQRFromComplexSpatialQuery::determineRelevantItem(const sserialize::ItemIndex & items) const {
