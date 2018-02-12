@@ -228,13 +228,7 @@ public:
 	std::string getAllGeoPointsAsString() const;
 };
 
-class OsmKeyValueObjectStorePrivate: public
-#ifdef LIBOSCAR_NO_DATA_REFCOUNTING
-	sserialize::RefCountObjectWithDisable
-#else
-	sserialize::RefCountObject
-#endif
-{
+class OsmKeyValueObjectStorePrivate: public sserialize::RefCountObject {
 public:
 	typedef sserialize::Static::KeyValueObjectStore::ValueStringTable ValueStringTable;
 	typedef sserialize::Static::KeyValueObjectStore::KeyStringTable KeyStringTable;
