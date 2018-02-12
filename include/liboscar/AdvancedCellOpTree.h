@@ -351,7 +351,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 		else {
 			auto tmp = m_ctc.cqrAlongPath<sserialize::CellQueryResult>(0.0, gp.begin(), gp.end());
 			if (radius > 0.0) {
-				return CQRType(m_cqrd.dilate(tmp, radius), gh(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS) + CQRType(tmp);
+				return CQRType(m_cqrd.dilate(tmp, radius), gh(), idxStore(), tmp.flags()) + CQRType(tmp);
 			}
 			else {
 				return CQRType(tmp);
@@ -377,9 +377,7 @@ template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegionExclusiveCells(AdvancedCellOpTree::Node * node) {
 	uint32_t storeId = atoi(node->value.c_str());
-	uint32_t ghId = gh().storeIdToGhId(storeId);
-	sserialize::ItemIndex idx = ghsg().regionExclusiveCells(ghId);
-	return CQRType(idx, gh(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+	return m_ctc.regionExclusiveCells<CQRType>(storeId);
 }
 
 template<typename T_CQR_TYPE>
@@ -500,7 +498,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcQueryExclusiveCells(AdvancedCellOpTree
 		}
 	}
 	sserialize::ItemIndex idx(std::move(tmp));
-	return CQRType(idx, gh(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS) / cqr;
+	return CQRType(idx, gh(), idxStore(), cqr.flags()) / cqr;
 }
 
 template<>
