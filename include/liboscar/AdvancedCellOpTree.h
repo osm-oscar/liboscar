@@ -484,7 +484,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcQueryExclusiveCells(AdvancedCellOpTree
 			dpMin = std::atoi(tmp.front().c_str());
 			dpMax = std::atoi(tmp.at(1).c_str());
 		}
-		else if (tmp.size() > 1) {
+		else if (tmp.size()) {
 			dpMax = std::atoi(tmp.front().c_str());
 		}
 	}
