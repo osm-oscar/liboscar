@@ -43,7 +43,7 @@ public:
 	const liboscar::CQRFromPolygon & cqrfp() const;
 public: //cqr creation
 	//uses auto-detection of accuracy
-	sserialize::CellQueryResult cqrFromPolygon(const sserialize::spatial::GeoPolygon & gp) const;
+	sserialize::CellQueryResult cqrFromPolygon(const sserialize::spatial::GeoPolygon & gp, int cqrFlags) const;
 private://polygon creation functions for betweenOp
 	///between 0->360, north is at 0
 	double bearing(double fromLat, double fromLon, double toLat, double toLon) const;

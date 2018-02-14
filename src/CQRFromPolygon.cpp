@@ -28,12 +28,12 @@ sserialize::ItemIndex CQRFromPolygon::fullMatches(const sserialize::spatial::Geo
 	return m_priv->fullMatches(gp, ac);
 }
 
-sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPolygon& gp, Accuracy ac) const {
-	return m_priv->cqr(gp, ac);
+sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPolygon& gp, Accuracy ac, int cqrFlags) const {
+	return m_priv->cqr(gp, ac, cqrFlags);
 }
 
-sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPoint& gp, double radius, CQRFromPolygon::Accuracy ac) const {
-	return m_priv->cqr(gp, radius, ac);
+sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPoint& gp, double radius, CQRFromPolygon::Accuracy ac, int cqrFlags) const {
+	return m_priv->cqr(gp, radius, ac, cqrFlags);
 }
 
 namespace detail {
@@ -74,7 +74,7 @@ sserialize::ItemIndex CQRFromPolygon::fullMatches(const sserialize::spatial::Geo
 	};
 }
 
-sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPolygon& gp, liboscar::CQRFromPolygon::Accuracy ac) const {
+sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPolygon& gp, liboscar::CQRFromPolygon::Accuracy ac, int cqrFlags) const {
 	if (ac == liboscar::CQRFromPolygon::AC_AUTO) {
 		double gpLen = gp.length();
 		if (gpLen < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM) {
@@ -92,10 +92,10 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 	}
 	switch (ac) {
 	case liboscar::CQRFromPolygon::AC_POLYGON_BBOX_CELL_BBOX:
-		return sserialize::CellQueryResult(m_store.geoHierarchy().intersectingCells(idxStore(), gp.boundary()), m_store.geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+		return sserialize::CellQueryResult(geoHierarchy().intersectingCells(idxStore(), gp.boundary()), geoHierarchy(), idxStore(), cqrFlags);
 	case liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX:
 	case liboscar::CQRFromPolygon::AC_POLYGON_CELL:
-		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), m_store.geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), geoHierarchy(), idxStore(), cqrFlags);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX:
 		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemBBoxIntersectOp>(gp);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM:
@@ -106,7 +106,7 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 	};
 }
 
-sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPoint& gp, double radius, liboscar::CQRFromPolygon::Accuracy ac) const {
+sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPoint& gp, double radius, liboscar::CQRFromPolygon::Accuracy ac, int cqrFlags) const {
 	if (radius <= 0) { //radius is 0
 		uint32_t cellId = m_store.regionArrangement().cellId(gp);
 		
@@ -145,7 +145,7 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 		return result;
 	}
 	else {
-		return cqr(sserialize::spatial::GeoPolygon::fromRect(sserialize::spatial::GeoRect(gp.lat(), gp.lon(), radius)), ac);
+		return cqr(sserialize::spatial::GeoPolygon::fromRect(sserialize::spatial::GeoRect(gp.lat(), gp.lon(), radius)), ac, cqrFlags);
 	}
 }
 

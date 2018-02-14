@@ -32,8 +32,8 @@ public:
 	///returns only fm cells, only usefull with AC_POLYGON_BBOX_CELL and AC_POLYGON_CELL_BBOX
 	sserialize::ItemIndex fullMatches(const sserialize::spatial::GeoPolygon & gp, Accuracy ac) const;
 	///supports AC_POLYGON_ITEM_BBOX and AC_POLYGON_ITEM, does NOT support AC_POLYGON_CELL, falls back to AC_POLYGON_CELL_BBOX
-	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPolygon & gp, Accuracy ac) const;
-	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPoint & gp, double radius, Accuracy ac) const;
+	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPolygon & gp, Accuracy ac, int cqrFlags) const;
+	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPoint & gp, double radius, Accuracy ac, int cqrFlags) const;
 private:
 	sserialize::RCPtrWrapper<detail::CQRFromPolygon> m_priv;
 };
@@ -42,14 +42,16 @@ namespace detail {
 
 class CQRFromPolygon: public sserialize::RefCountObject {
 public:
+		using Accuracy = liboscar::CQRFromPolygon::Accuracy;
+public:
 	CQRFromPolygon(const Static::OsmKeyValueObjectStore & store, const sserialize::Static::ItemIndexStore & idxStore);
 	virtual ~CQRFromPolygon();
 	const Static::OsmKeyValueObjectStore & store() const;
 	const sserialize::Static::spatial::GeoHierarchy & geoHierarchy() const;
 	const sserialize::Static::ItemIndexStore & idxStore() const;
-	sserialize::ItemIndex fullMatches(const sserialize::spatial::GeoPolygon& gp, liboscar::CQRFromPolygon::Accuracy ac) const;
-	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPolygon & gp, liboscar::CQRFromPolygon::Accuracy ac) const;
-	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPoint & gp, double radius, liboscar::CQRFromPolygon::Accuracy ac) const;
+	sserialize::ItemIndex fullMatches(const sserialize::spatial::GeoPolygon& gp, Accuracy ac) const;
+	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPolygon & gp, Accuracy ac, int cqrFlags) const;
+	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPoint & gp, double radius, Accuracy ac, int cqrFlags) const;
 private:
 	template<typename T_OPERATOR>
 	void visit(const sserialize::spatial::GeoPolygon & gp, const sserialize::Static::spatial::GeoPolygon& sgp, T_OPERATOR & op) const;

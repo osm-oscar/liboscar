@@ -63,8 +63,8 @@ const sserialize::Static::ItemIndexStore & CQRFromComplexSpatialQuery::idxStore(
 
 //the helper funtionts
 
-sserialize::CellQueryResult CQRFromComplexSpatialQuery::cqrFromPolygon(const sserialize::spatial::GeoPolygon & gp) const {
-	return cqrfp().cqr(gp, liboscar::CQRFromPolygon::AC_AUTO);
+sserialize::CellQueryResult CQRFromComplexSpatialQuery::cqrFromPolygon(const sserialize::spatial::GeoPolygon & gp, int cqrFlags) const {
+	return cqrfp().cqr(gp, liboscar::CQRFromPolygon::AC_AUTO, cqrFlags);
 }
 
 //Now the polygon creation functions
@@ -498,6 +498,15 @@ createPolygon(
 
 
 sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sserialize::CellQueryResult& cqr1, const sserialize::CellQueryResult& cqr2) const {
+	
+	int cqrFlags = sserialize::CellQueryResult::FF_NONE;
+	if (((cqr1.flags() | cqr2.flags()) & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS) != sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS) {
+		cqrFlags = cqr1.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS;
+	}
+	else {
+		cqrFlags = sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS;
+	}
+	
 	QueryItemType qit1, qit2;
 	uint32_t id1, id2;
 	determineQueryItemType(cqr1, qit1, id1);
@@ -603,7 +612,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 			);
 		}
 		
-		return cqrFromPolygon( sserialize::spatial::GeoPolygon(pp) );
+		return cqrFromPolygon( sserialize::spatial::GeoPolygon(pp), cqrFlags);
 	}
 	else if (qit1 == QIT_ITEM || qit2 == QIT_ITEM) {
 		//item <-> region, just use the bounding box of the item and the bounding box of the region
@@ -620,7 +629,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 		}
 		std::vector<sserialize::spatial::GeoPoint> gp;
 		createPolygon(rect1, rect2, gp);
-		return cqrFromPolygon(sserialize::spatial::GeoPolygon(gp));
+		return cqrFromPolygon(sserialize::spatial::GeoPolygon(gp), cqrFlags);
 	}
 	else {
 		std::vector<sserialize::spatial::GeoPoint> gp;
@@ -630,7 +639,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 		//now remove the cells that are part of the input regions
 		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(id1));
 		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(id2));
-		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore(), cqrFlags);
 	}
 }
 
@@ -639,6 +648,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 	if (cqr.cellCount() == 0) {
 		return sserialize::CellQueryResult();
 	}
+	int cqrFlags = cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS;
 	QueryItemType qit;
 	uint32_t id;
 	determineQueryItemType(cqr, qit, id);
@@ -667,7 +677,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 		default:
 			return sserialize::CellQueryResult();
 		}
-		return m_cqrfp.cqr(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_AUTO);
+		return m_cqrfp.cqr(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_AUTO, cqrFlags);
 	}
 	else if (qit == QIT_REGION) {
 		createPolygon(geoHierarchy().regionBoundary(id), direction, pp);
@@ -676,7 +686,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 		}
 		sserialize::ItemIndex tmp(m_cqrfp.fullMatches(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX));
 		tmp = tmp - idxStore().at(m_cqrfp.geoHierarchy().regionCellIdxPtr(id));
-		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore(), cqrFlags);
 	}
 	else {
 		assert(false);
@@ -688,6 +698,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::relevantElementOp(const 
 	if (cqr.cellCount() == 0) {
 		return sserialize::CellQueryResult();
 	}
+	int cqrFlags = cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS;
 	QueryItemType qit;
 	uint32_t id;
 	determineQueryItemType(cqr, qit, id);
@@ -703,7 +714,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::relevantElementOp(const 
 		return sserialize::CellQueryResult(ItemIndex(), ItemIndex(cells.begin(), cells.end()), pm.begin(), geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
 	}
 	else if (qit == QIT_REGION) {
-		return sserialize::CellQueryResult(idxStore().at( geoHierarchy().regionCellIdxPtr(id) ), geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+		return sserialize::CellQueryResult(idxStore().at( geoHierarchy().regionCellIdxPtr(id) ), geoHierarchy(), idxStore(), cqrFlags);
 	}
 	else {
 		assert(false);
