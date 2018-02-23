@@ -89,4 +89,5 @@ add_library(${PROJECT_NAME} STATIC
 )
 target_link_libraries(${PROJECT_NAME} ${LIBOSCAR_LINK_LIBS}) 
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${LIBOSCAR_COMPILE_DEFINITIONS})
+add_target_properties(${PROJECT_NAME} COMPILE_FLAGS -fPIC)
 add_dependencies(${PROJECT_NAME} sserialize)
