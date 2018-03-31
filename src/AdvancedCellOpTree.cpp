@@ -767,7 +767,7 @@ sserialize::CellQueryResult
 AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcDilationOp(AdvancedCellOpTree::Node* node) {
 	double diameter = sserialize::stod(node->value.c_str())*1000;
 	sserialize::CellQueryResult cqr( calc(node->children.front()) );
-	return sserialize::CellQueryResult( m_cqrd.dilate(cqr, diameter), cqr.geoHierarchy(), cqr.idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS) + cqr;
+	return sserialize::CellQueryResult( m_cqrd.dilate(cqr, diameter, m_threadCount), cqr.geoHierarchy(), cqr.idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS) + cqr;
 }
 
 template<>
@@ -775,7 +775,7 @@ sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcDilationOp(AdvancedCellOpTree::Node* node) {
 	double diameter = sserialize::stod(node->value.c_str())*1000;
 	sserialize::TreedCellQueryResult cqr( calc(node->children.front()) );
-	return sserialize::TreedCellQueryResult( m_cqrd.dilate(toCQR(cqr), diameter), cqr.geoHierarchy(), cqr.idxStore() ) + cqr;
+	return sserialize::TreedCellQueryResult( m_cqrd.dilate(toCQR(cqr), diameter, m_threadCount), cqr.geoHierarchy(), cqr.idxStore() ) + cqr;
 }
 
 

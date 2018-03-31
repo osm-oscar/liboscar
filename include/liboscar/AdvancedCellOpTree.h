@@ -351,7 +351,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 		else {
 			auto tmp = m_ctc.cqrAlongPath<sserialize::CellQueryResult>(0.0, gp.begin(), gp.end());
 			if (radius > 0.0) {
-				return CQRType(m_cqrd.dilate(tmp, radius), gh(), idxStore(), tmp.flags()) + CQRType(tmp);
+				return CQRType(m_cqrd.dilate(tmp, radius, m_threadCount), gh(), idxStore(), tmp.flags()) + CQRType(tmp);
 			}
 			else {
 				return CQRType(tmp);
