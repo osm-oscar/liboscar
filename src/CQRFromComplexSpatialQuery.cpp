@@ -22,16 +22,16 @@ const liboscar::CQRFromPolygon & CQRFromComplexSpatialQuery::cqrfp() const {
 	return m_priv->cqrfp();
 }
 
-sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sserialize::CellQueryResult & cqr, UnaryOp direction) const {
-	return m_priv->compassOp(cqr, direction);
+sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sserialize::CellQueryResult & cqr, UnaryOp direction, uint32_t threadCount) const {
+	return m_priv->compassOp(cqr, direction, threadCount);
 }
 
 sserialize::CellQueryResult CQRFromComplexSpatialQuery::relevantElementOp(const sserialize::CellQueryResult & cqr) const {
 	return m_priv->relevantElementOp(cqr);
 }
 
-sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sserialize::CellQueryResult& cqr1, const sserialize::CellQueryResult& cqr2) const {
-	return m_priv->betweenOp(cqr1, cqr2);
+sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sserialize::CellQueryResult& cqr1, const sserialize::CellQueryResult& cqr2, uint32_t threadCount) const {
+	return m_priv->betweenOp(cqr1, cqr2, threadCount);
 }
 
 namespace detail {
@@ -63,8 +63,8 @@ const sserialize::Static::ItemIndexStore & CQRFromComplexSpatialQuery::idxStore(
 
 //the helper funtionts
 
-sserialize::CellQueryResult CQRFromComplexSpatialQuery::cqrFromPolygon(const sserialize::spatial::GeoPolygon & gp, int cqrFlags) const {
-	return cqrfp().cqr(gp, liboscar::CQRFromPolygon::AC_AUTO, cqrFlags);
+sserialize::CellQueryResult CQRFromComplexSpatialQuery::cqrFromPolygon(const sserialize::spatial::GeoPolygon & gp, int cqrFlags, uint32_t threadCount) const {
+	return cqrfp().cqr(gp, liboscar::CQRFromPolygon::AC_AUTO, cqrFlags, threadCount);
 }
 
 //Now the polygon creation functions
@@ -497,7 +497,7 @@ createPolygon(
 // rectangle diagonal less thant 500m -> POLYGON_ITEM
 
 
-sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sserialize::CellQueryResult& cqr1, const sserialize::CellQueryResult& cqr2) const {
+sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sserialize::CellQueryResult& cqr1, const sserialize::CellQueryResult& cqr2, uint32_t threadCount) const {
 	
 	int cqrFlags = sserialize::CellQueryResult::FF_NONE;
 	if (((cqr1.flags() | cqr2.flags()) & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS) != sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS) {
@@ -612,7 +612,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 			);
 		}
 		
-		return cqrFromPolygon( sserialize::spatial::GeoPolygon(pp), cqrFlags);
+		return cqrFromPolygon( sserialize::spatial::GeoPolygon(pp), cqrFlags, threadCount);
 	}
 	else if (qit1 == QIT_ITEM || qit2 == QIT_ITEM) {
 		//item <-> region, just use the bounding box of the item and the bounding box of the region
@@ -629,13 +629,13 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 		}
 		std::vector<sserialize::spatial::GeoPoint> gp;
 		createPolygon(rect1, rect2, gp);
-		return cqrFromPolygon(sserialize::spatial::GeoPolygon(gp), cqrFlags);
+		return cqrFromPolygon(sserialize::spatial::GeoPolygon(gp), cqrFlags, threadCount);
 	}
 	else {
 		std::vector<sserialize::spatial::GeoPoint> gp;
 		createPolygon(geoHierarchy().regionBoundary(id1), geoHierarchy().regionBoundary(id2), gp);
 		
-		sserialize::ItemIndex tmp(cqrfp().fullMatches(sserialize::spatial::GeoPolygon(gp), liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX));
+		sserialize::ItemIndex tmp(cqrfp().fullMatches(sserialize::spatial::GeoPolygon(gp), liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX, threadCount));
 		//now remove the cells that are part of the input regions
 		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(id1));
 		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(id2));
@@ -644,7 +644,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 }
 
 //todo: clip
-sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sserialize::CellQueryResult& cqr, liboscar::CQRFromComplexSpatialQuery::UnaryOp direction) const {
+sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sserialize::CellQueryResult& cqr, liboscar::CQRFromComplexSpatialQuery::UnaryOp direction, uint32_t threadCount) const {
 	if (cqr.cellCount() == 0) {
 		return sserialize::CellQueryResult();
 	}
@@ -677,14 +677,14 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 		default:
 			return sserialize::CellQueryResult();
 		}
-		return m_cqrfp.cqr(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_AUTO, cqrFlags);
+		return m_cqrfp.cqr(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_AUTO, cqrFlags, threadCount);
 	}
 	else if (qit == QIT_REGION) {
 		createPolygon(geoHierarchy().regionBoundary(id), direction, pp);
 		if (!pp.size()) {
 			return sserialize::CellQueryResult();
 		}
-		sserialize::ItemIndex tmp(m_cqrfp.fullMatches(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX));
+		sserialize::ItemIndex tmp(m_cqrfp.fullMatches(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX, threadCount));
 		tmp = tmp - idxStore().at(m_cqrfp.geoHierarchy().regionCellIdxPtr(id));
 		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore(), cqrFlags);
 	}

@@ -258,7 +258,7 @@ T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRect(AdvancedCellOpTree::Node* node) {
 	sserialize::spatial::GeoRect rect(node->value, true);
 	if (rect.lengthInM() < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX) {
-		return T_CQR_TYPE( m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon::fromRect(rect), CQRFromPolygon::AC_AUTO, m_ctc.flags()) );
+		return T_CQR_TYPE( m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon::fromRect(rect), CQRFromPolygon::AC_AUTO, m_ctc.flags(), m_threadCount) );
 	}
 	else {
 		return m_ctc.cqrFromRect<CQRType>(rect);
@@ -300,7 +300,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPolygon(AdvancedCellOpTree::Node* node
 		gps.push_back(gps.front());
 	}
 	
-	sserialize::CellQueryResult cqr = m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon(std::move(gps)), CQRFromPolygon::AC_AUTO, m_ctc.flags());
+	sserialize::CellQueryResult cqr = m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon(std::move(gps)), CQRFromPolygon::AC_AUTO, m_ctc.flags(), m_threadCount);
 	return T_CQR_TYPE(cqr);
 }
 
@@ -331,7 +331,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 	}
 	double radius(tmp[0]);
 	if (tmp.size() == 3) {
-		return CQRType( m_csq.cqrfp().cqr(sserialize::spatial::GeoPoint(tmp[1], tmp[2]), radius, CQRFromPolygon::AC_AUTO, m_ctc.flags()) );
+		return CQRType( m_csq.cqrfp().cqr(sserialize::spatial::GeoPoint(tmp[1], tmp[2]), radius, CQRFromPolygon::AC_AUTO, m_ctc.flags(), m_threadCount) );
 	}
 	else if (tmp.size() == 5) {
 		sserialize::spatial::GeoPoint startPoint(tmp[1], tmp[2]), endPoint(tmp[3], tmp[4]);

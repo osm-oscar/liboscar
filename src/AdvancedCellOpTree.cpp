@@ -645,7 +645,7 @@ AdvancedCellOpTree::~AdvancedCellOpTree() {
 
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcBetweenOp(const sserialize::CellQueryResult& c1, const sserialize::CellQueryResult& c2) {
 #ifdef SSERIALIZE_EXPENSIVE_ASSERT_ENABLED
-	auto tmp = m_csq.betweenOp(c1, c2);
+	auto tmp = m_csq.betweenOp(c1, c2, 1);
 	for(const sserialize::ItemIndex & x : tmp) {
 		SSERIALIZE_EXPENSIVE_ASSERT(std::is_sorted(x.begin(), x.end()));
 		SSERIALIZE_EXPENSIVE_ASSERT(sserialize::is_strong_monotone_ascending(x.begin(), x.end()));
@@ -659,7 +659,7 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcBetweenOp(const ss
 	}
 	return tmp;
 #else
-	return m_csq.betweenOp(c1, c2);
+	return m_csq.betweenOp(c1, c2, m_threadCount);
 #endif
 }
 
@@ -677,7 +677,7 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcCompassOp(liboscar
 	else if (node->value == "<" || node->value == "west-of") {
 		direction = CQRFromComplexSpatialQuery::UO_WEST_OF;
 	}
-	return m_csq.compassOp(cqr, direction);
+	return m_csq.compassOp(cqr, direction, m_threadCount);
 }
 
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcRelevantElementOp(liboscar::AdvancedCellOpTree::Node* node, const sserialize::CellQueryResult& cqr) {

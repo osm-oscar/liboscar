@@ -19,9 +19,9 @@ public:
 	CQRFromComplexSpatialQuery(const CQRFromComplexSpatialQuery & other);
 	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph & ssc, const CQRFromPolygon & cqrfp);
 	~CQRFromComplexSpatialQuery();
-	sserialize::CellQueryResult compassOp(const sserialize::CellQueryResult & cqr, UnaryOp direction) const;
+	sserialize::CellQueryResult compassOp(const sserialize::CellQueryResult & cqr, UnaryOp direction, uint32_t threadCount) const;
 	sserialize::CellQueryResult relevantElementOp(const sserialize::CellQueryResult & cqr) const;
-	sserialize::CellQueryResult betweenOp(const sserialize::CellQueryResult & cqr1, const sserialize::CellQueryResult & cqr2) const;
+	sserialize::CellQueryResult betweenOp(const sserialize::CellQueryResult & cqr1, const sserialize::CellQueryResult & cqr2, uint32_t threadCount) const;
 	const liboscar::CQRFromPolygon & cqrfp() const;
 private:
 	sserialize::RCPtrWrapper<detail::CQRFromComplexSpatialQuery> m_priv;
@@ -38,12 +38,12 @@ public:
 	CQRFromComplexSpatialQuery(const sserialize::spatial::GeoHierarchySubGraph& ssc, const liboscar::CQRFromPolygon& cqrfp);
 	virtual ~CQRFromComplexSpatialQuery();
 	sserialize::CellQueryResult relevantElementOp(const sserialize::CellQueryResult& cqr) const;
-	sserialize::CellQueryResult compassOp(const sserialize::CellQueryResult& cqr, liboscar::CQRFromComplexSpatialQuery::UnaryOp direction) const;
-	sserialize::CellQueryResult betweenOp(const sserialize::CellQueryResult & cqr1, const sserialize::CellQueryResult & cqr2) const;
+	sserialize::CellQueryResult compassOp(const sserialize::CellQueryResult& cqr, liboscar::CQRFromComplexSpatialQuery::UnaryOp direction, uint32_t threadCount) const;
+	sserialize::CellQueryResult betweenOp(const sserialize::CellQueryResult & cqr1, const sserialize::CellQueryResult & cqr2, uint32_t threadCount) const;
 	const liboscar::CQRFromPolygon & cqrfp() const;
 public: //cqr creation
 	//uses auto-detection of accuracy
-	sserialize::CellQueryResult cqrFromPolygon(const sserialize::spatial::GeoPolygon & gp, int cqrFlags) const;
+	sserialize::CellQueryResult cqrFromPolygon(const sserialize::spatial::GeoPolygon & gp, int cqrFlags, uint32_t threadCount) const;
 private://polygon creation functions for betweenOp
 	///between 0->360, north is at 0
 	double bearing(double fromLat, double fromLon, double toLat, double toLon) const;
