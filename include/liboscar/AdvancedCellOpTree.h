@@ -200,6 +200,7 @@ private:
 		sserialize::CellQueryResult calcCompassOp(Node * node, const sserialize::CellQueryResult & cqr);
 		sserialize::CellQueryResult calcRelevantElementOp(Node * node, const sserialize::CellQueryResult & cqr);
 		sserialize::ItemIndex calcDilateRegionOp(Node * node, const sserialize::CellQueryResult & cqr);
+		static std::vector<double> asDoubles(const std::string & str);
 	};
 
 	template<typename T_CQR_TYPE>
@@ -307,25 +308,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPolygon(AdvancedCellOpTree::Node* node
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
-	std::vector<double> tmp;
-	{
-		struct MyOut {
-			std::vector<double> * dest;
-			MyOut & operator++() { return *this; }
-			MyOut & operator*() { return *this; }
-			MyOut & operator=(const std::string & str) {
-				try {
-					double t = sserialize::stod(str);
-					dest->push_back(t);
-				}
-				catch (std::invalid_argument & e) {}
-				return *this;
-			}
-			MyOut(std::vector<double> * d) : dest(d) {}
-		};
-		typedef sserialize::OneValueSet<uint32_t> MyS;
-		sserialize::split<std::string::const_iterator, MyS, MyS, MyOut>(node->value.begin(), node->value.end(), MyS(','), MyS('\\'), MyOut(&tmp));
-	}
+	std::vector<double> tmp( asDoubles(node->value) );
 	if (tmp.size() < 3 || tmp.size() % 2 == 0) {
 		return CQRType();
 	}

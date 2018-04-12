@@ -725,6 +725,29 @@ sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionOp(AdvancedC
 	return res;
 }
 
+std::vector<double> AdvancedCellOpTree::CalcBase::asDoubles(const std::string & str) {
+	std::vector<double> tmp;
+	{
+		struct MyOut {
+			std::vector<double> * dest;
+			MyOut & operator++() { return *this; }
+			MyOut & operator*() { return *this; }
+			MyOut & operator=(const std::string & str) {
+				try {
+					double t = sserialize::stod(str);
+					dest->push_back(t);
+				}
+				catch (std::invalid_argument & e) {}
+				return *this;
+			}
+			MyOut(std::vector<double> * d) : dest(d) {}
+		};
+		typedef sserialize::OneValueSet<uint32_t> MyS;
+		sserialize::split<std::string::const_iterator, MyS, MyS, MyOut>(str.begin(), str.end(), MyS(','), MyS('\\'), MyOut(&tmp));
+	}
+	return tmp;
+}
+
 const sserialize::Static::spatial::GeoHierarchy& AdvancedCellOpTree::CalcBase::gh() const {
 	return m_ctc.geoHierarchy();
 }
