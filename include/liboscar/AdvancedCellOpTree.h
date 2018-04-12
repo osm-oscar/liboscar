@@ -33,7 +33,7 @@
   * REGION_EXCLUSIVE_CELLS := $rec:<storeId>
   * QUERY_EXCLUSIVE_CELLS := $qec:<minDirectParents>:<maxDirectParents>
   * CONSTRAINED_REGION_EXCLUSIVE_CELLS := $crec:<storeId>,<rect-definition>
-  * CELL := $cell:<cellId>
+  * CELL := $cell:<cellId>|$cell:lat,lon
   * CELLS := $cells:<cellids>
   */
 namespace liboscar {
@@ -366,8 +366,17 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegionExclusiveCells(AdvancedCellOpTre
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcCell(AdvancedCellOpTree::Node* node) {
-	uint32_t id = atoi(node->value.c_str());
-	return m_ctc.cqrFromCellId<CQRType>(id);
+	if (node->value.find(',') != std::string::npos) {
+		std::vector<double> tmp( asDoubles(node->value) );
+		if (tmp.size() != 2) {
+			return CQRType();
+		}
+		return m_ctc.cqrFromPoint<CQRType>(sserialize::spatial::GeoPoint(tmp.front(), tmp.back()), 0.0);
+	}
+	else {
+		uint32_t id = atoi(node->value.c_str());
+		return m_ctc.cqrFromCellId<CQRType>(id);
+	}
 }
 
 template<typename T_CQR_TYPE>
