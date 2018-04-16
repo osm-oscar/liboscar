@@ -235,6 +235,12 @@ public:
 	///get the root node, do not alter it!
 	const Node * root() const { return m_root; }
 	Node * root() { return m_root; }
+	sserialize::Static::CellTextCompleter & ctc() { return m_ctc; }
+	const sserialize::Static::CellTextCompleter & ctc() const { return m_ctc; }
+	const sserialize::Static::CQRDilator & cqrd() const { return m_cqrd; }
+	const CQRFromComplexSpatialQuery & csq() const { return m_csq; }
+	const sserialize::spatial::GeoHierarchySubGraph & ghsg() const { return m_ghsg; }
+
 private:
 	sserialize::Static::CellTextCompleter m_ctc;
 	sserialize::Static::CQRDilator m_cqrd;
