@@ -154,23 +154,6 @@ class AdvancedCellOpTree final {
 public:
 	typedef detail::AdvancedCellOpTree::Node Node;
 public:
-	AdvancedCellOpTree(
-		const sserialize::Static::CellTextCompleter & ctc,
-		const sserialize::Static::CQRDilator & cqrd,
-		const CQRFromComplexSpatialQuery & csq,
-		const sserialize::spatial::GeoHierarchySubGraph & ghsg);
-	~AdvancedCellOpTree();
-	void parse(const std::string & str);
-	///remove potential harmless queries
-	void clean(double maxDilation);
-	template<typename T_CQR_TYPE>
-	T_CQR_TYPE calc(uint32_t threadCount = 1);
-public:
-	///get the root node, do not alter it!
-	const Node * root() const {
-		return m_root;
-	}
-private:
 	struct CalcBase {
 		CalcBase(sserialize::Static::CellTextCompleter & ctc,
 			const sserialize::Static::CQRDilator & cqrd,
@@ -233,6 +216,25 @@ private:
 		CQRType calcBinaryOp(Node * node);
 		CQRType calcBetweenOp(Node * node);
 	};
+public:
+	AdvancedCellOpTree(
+		const sserialize::Static::CellTextCompleter & ctc,
+		const sserialize::Static::CQRDilator & cqrd,
+		const CQRFromComplexSpatialQuery & csq,
+		const sserialize::spatial::GeoHierarchySubGraph & ghsg);
+	AdvancedCellOpTree(const AdvancedCellOpTree &) = delete;
+	~AdvancedCellOpTree();
+	AdvancedCellOpTree & operator=(const AdvancedCellOpTree&) = delete;
+	void parse(const std::string & str);
+	///remove potential harmless queries
+	void clean(double maxDilation);
+	template<typename T_CQR_TYPE>
+	T_CQR_TYPE calc(uint32_t threadCount = 1);
+	
+public:
+	///get the root node, do not alter it!
+	const Node * root() const { return m_root; }
+	Node * root() { return m_root; }
 private:
 	sserialize::Static::CellTextCompleter m_ctc;
 	sserialize::Static::CQRDilator m_cqrd;
