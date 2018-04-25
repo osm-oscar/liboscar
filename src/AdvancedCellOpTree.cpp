@@ -662,23 +662,34 @@ AdvancedCellOpTree::~AdvancedCellOpTree() {
 }
 
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcBetweenOp(const sserialize::CellQueryResult& c1, const sserialize::CellQueryResult& c2) {
+	sserialize::CellQueryResult result;
 #ifdef SSERIALIZE_EXPENSIVE_ASSERT_ENABLED
-	auto tmp = m_csq.betweenOp(c1, c2, 1);
-	for(const sserialize::ItemIndex & x : tmp) {
+	result = m_csq.betweenOp(c1, c2, 1);
+	for(const sserialize::ItemIndex & x : result) {
 		SSERIALIZE_EXPENSIVE_ASSERT(std::is_sorted(x.begin(), x.end()));
 		SSERIALIZE_EXPENSIVE_ASSERT(sserialize::is_strong_monotone_ascending(x.begin(), x.end()));
 		for(uint32_t y : x) {
 			SSERIALIZE_EXPENSIVE_ASSERT_NOT_EQUAL(y, uint32_t(16800296));
 		}
 	}
-	sserialize::ItemIndex tmp2 =  tmp.flaten();
+	sserialize::ItemIndex tmp2 =  result.flaten();
 	for(uint32_t y : tmp2) {
 		SSERIALIZE_EXPENSIVE_ASSERT_NOT_EQUAL(y, uint32_t(16800296));
 	}
-	return tmp;
 #else
-	return m_csq.betweenOp(c1, c2, m_threadCount);
+	result = m_csq.betweenOp(c1, c2, m_threadCount);
 #endif
+	int resultFlags = sserialize::CellQueryResult::FF_NONE;
+	if ((c1.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS) != (c2.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS)) {
+		resultFlags = m_ctc.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS;
+	}
+	else {
+		resultFlags = c1.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS;
+	}
+	if ((result.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS) != resultFlags) {
+		result = result.convert(resultFlags);
+	}
+	return result;
 }
 
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcCompassOp(liboscar::AdvancedCellOpTree::Node* node, const sserialize::CellQueryResult& cqr) {
