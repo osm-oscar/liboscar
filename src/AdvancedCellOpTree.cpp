@@ -88,7 +88,7 @@ std::string Tokenizer::readString() {
 				else
 					break;
 			}
-			else if (*m_state.it == ' ') {
+			else if (*m_state.it == ' ' || *m_state.it == '.' || *m_state.it == ',') {
 				tokenString += *m_state.it;
 				if (m_strHinter && m_strHinter->operator()(tokenString.cbegin(), tokenString.cend())) {
 					if (tokenString.size() > 1 && tokenString.at(tokenString.size()-2) != ' ') {
@@ -189,6 +189,8 @@ Token Tokenizer::next() {
 			return t;
 		case ' ': //ignore whitespace
 		case '\t':
+		case ',':
+		case '.':
 			++m_state.it;
 			break;
 		case '(':

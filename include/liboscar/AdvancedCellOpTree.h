@@ -23,7 +23,8 @@
   * COMPASS_OP := :^ | :v | :> | :< | :north-of | :east-of | :south-of | :west-of
   * RELEVANT_ELEMENT_OP := *
   * BETWEEN_OP := <->
-  * BINARY_OP := - | + | / | ^ 
+  * BINARY_OP := - | + | INTERSECTION | ^ |
+  * INTERSECTION := ' ' | / | , | .
   * ITEM := $item:<itemId>
   * GEO_RECT := $geo:<rect-defintion>
   * POINT := $point:radius,lat,lon
