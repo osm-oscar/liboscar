@@ -35,6 +35,8 @@
   * CONSTRAINED_REGION_EXCLUSIVE_CELLS := $crec:<storeId>,<rect-definition>
   * CELL := $cell:<cellId>|$cell:lat,lon
   * CELLS := $cells:<cellids>
+  * TRIANGLE := $triangle:<triangleId>
+  * TRIANGLES := $triangles:<triangleId>
   */
 namespace liboscar {
 namespace detail {
@@ -49,6 +51,7 @@ struct Node {
 		RECT, POLYGON, PATH, POINT,
 		REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS,
 		CELL, CELLS,
+		TRIANGLE, TRIANGLES,
 		STRING, ITEM, STRING_ITEM, STRING_REGION
 	};
 	int baseType;
@@ -90,6 +93,8 @@ struct Token {
 		CONSTRAINED_REGION_EXCLUSIVE_CELLS,
 		CELL,
 		CELLS,
+		TRIANGLE,
+		TRIANGLES,
 		STRING,
 		ITEM,
 		STRING_ITEM,
@@ -207,6 +212,8 @@ public:
 		CQRType calcRegion(Node * node);
 		CQRType calcCell(Node * node);
 		CQRType calcCells(Node * node);
+		CQRType calcTriangle(Node * node);
+		CQRType calcTriangles(Node * node);
 		CQRType calcUnaryOp(Node * node);
 		CQRType calcDilationOp(Node * node);
 		CQRType calcRegionDilationOp(Node * node);
@@ -395,6 +402,22 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcCells(AdvancedCellOpTree::Node* node) 
 		
 	}
 	return m_ctc.cqrFromCellIds<CQRType>(cellIds.cbegin(), cellIds.cend());
+}
+
+template<typename T_CQR_TYPE>
+T_CQR_TYPE
+AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcTriangle(AdvancedCellOpTree::Node* node) {
+	if (node->value.find(',') != std::string::npos) {
+		std::vector<double> tmp( asDoubles(node->value) );
+		if (tmp.size() != 2) {
+			return CQRType();
+		}
+		return m_ctc.cqrFromPoint<CQRType>(sserialize::spatial::GeoPoint(tmp.front(), tmp.back()), 0.0);
+	}
+	else {
+		uint32_t id = atoi(node->value.c_str());
+		return m_ctc.cqrFromTriangleId<CQRType>(id);
+	}
 }
 
 template<typename T_CQR_TYPE>
