@@ -299,7 +299,7 @@ void OsmKeyValueObjectStoreItem::print(std::ostream& out, bool withGeoPoints) co
 		out << shape.boundary() << "}";
 	}
 	else {
-		shape.priv()->asString(out);
+		shape.get()->asString(out);
 	}
 	out << "]";
 }
@@ -335,7 +335,7 @@ std::string OsmKeyValueObjectStoreItem::getAllStrings() const {
 std::string OsmKeyValueObjectStoreItem::getAllGeoPointsAsString() const {
 	std::stringstream ss;
 	sserialize::Static::spatial::GeoShape shape = geoShape();
-	shape.priv()->asString(ss);
+	shape.get()->asString(ss);
 	return ss.str();
 }
 
@@ -408,7 +408,7 @@ uint32_t OsmKeyValueObjectStorePrivate::geoPointCount(uint32_t itemPos) const {
 	return payload(itemPos).shape().size();
 }
 sserialize::Static::spatial::GeoPoint OsmKeyValueObjectStorePrivate::geoPointAt(uint32_t itemPos, uint32_t pos) const {
-	return static_cast<sserialize::Static::spatial::GeoWay*>( payload(itemPos).shape().priv().get())->points().at(pos);
+	return geoShapeAt(itemPos).at(pos);
 }
 
 sserialize::Static::spatial::GeoShape OsmKeyValueObjectStorePrivate::geoShapeAt(uint32_t itemPos) const {
