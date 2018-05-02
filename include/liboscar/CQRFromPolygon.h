@@ -17,10 +17,11 @@ public:
 	
 	///Values for AC_AUTO. Accuracy is used if length of the polygon is below threshold
 	enum AccurayThresholds : uint32_t {
-		ACT_POLYGON_ITEM=4*500, //"smaller" than a square of 500m
-		ACT_POLYGON_ITEM_BBOX=4*1000, //"smaller" than a square of 1000m
-		ACT_POLYGON_CELL_BBOX=4*250*1000, //"smaller" than a square of 250km
-		ACT_POLYGON_BBOX_CELL_BBOX=std::numeric_limits<uint32_t>::max()
+		ACT_POLYGON_ITEM=1000, //"smaller" than a square of 1000m
+		ACT_POLYGON_ITEM_BBOX=2000, //"smaller" than a square of 2000m
+		ACT_POLYGON_CELL_BBOX=250*1000, //"smaller" than a square of 250km
+		ACT_POLYGON_BBOX_CELL_BBOX=std::numeric_limits<uint32_t>::max(),
+		ACT_USE_LENGTH_OVER_DIAGONAL_RATIO=20 //if the length of the polygon is more than 20 times longer than its diagonal, then use the length/20 as threshould value
 	};
 public:
 	CQRFromPolygon(const CQRFromPolygon & other);

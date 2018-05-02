@@ -76,14 +76,25 @@ sserialize::ItemIndex CQRFromPolygon::fullMatches(const sserialize::spatial::Geo
 
 sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPolygon& gp, liboscar::CQRFromPolygon::Accuracy ac, int cqrFlags, uint32_t threadCount) const {
 	if (ac == liboscar::CQRFromPolygon::AC_AUTO) {
-		double gpLen = gp.length();
-		if (gpLen < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM) {
+		double th;
+		{
+			double gpLen = gp.length();
+			double gpDiag = gp.boundary().diagInM();
+			if (gpLen > liboscar::CQRFromPolygon::ACT_USE_LENGTH_OVER_DIAGONAL_RATIO*gpDiag) {
+				th = gpLen / liboscar::CQRFromPolygon::ACT_USE_LENGTH_OVER_DIAGONAL_RATIO;
+			}
+			else {
+				th = gpDiag;
+			}
+		}
+		
+		if (th < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_ITEM;
 		}
-		else if (gpLen < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX) {
+		else if (th < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX;
 		}
-		else if (gpLen < liboscar::CQRFromPolygon::ACT_POLYGON_CELL_BBOX) {
+		else if (th < liboscar::CQRFromPolygon::ACT_POLYGON_CELL_BBOX) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX;
 		}
 		else { //really large, use fast test
