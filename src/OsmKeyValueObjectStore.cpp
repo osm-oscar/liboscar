@@ -286,7 +286,8 @@ m_id(id)
 void OsmKeyValueObjectStoreItem::print(std::ostream& out, bool withGeoPoints) const {
 	PayloadType pl(payload());
 	sserialize::Static::spatial::GeoShape shape = geoShape();
-	out << "[id=" << id() << ", osmId=" << pl.osmId() << ", score=" << pl.score() << ", kv=(" << getAllStrings() << ")";
+	out << "[id=" << id() << ", osmId=" << pl.osmId() << ", score=" << pl.score();
+	out << ", isRegion=" << (isRegion() ? "true" : "false") << ", kv=(" << getAllStrings() << ")";
 	out << ", boundary=" << shape.boundary();
 	sserialize::BoundedCompactUintArray myCells = cells();
 	out << ", cells={";
