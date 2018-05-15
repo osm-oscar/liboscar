@@ -21,8 +21,9 @@
   * CELL_DILATION := %NUMBER%
   * REGION_DILATION := %#NUMBER%
   * COMPASS_OP := :^ | :v | :> | :< | :north-of | :east-of | :south-of | :west-of
+  * USER_FRIENDLY := :in | :near | in | near
   * RELEVANT_ELEMENT_OP := *
-  * BETWEEN_OP := <->
+  * BETWEEN_OP := <-> | :between
   * BINARY_OP := - | + | INTERSECTION | ^ |
   * INTERSECTION := ' ' | / | , | .
   * ITEM := $item:<itemId>
@@ -47,6 +48,7 @@ struct Node {
 	enum Type : int { UNARY_OP, BINARY_OP, LEAF};
 	enum OpType : int {
 		FM_CONVERSION_OP, CELL_DILATION_OP, REGION_DILATION_OP, COMPASS_OP, RELEVANT_ELEMENT_OP,
+		IN_OP, NEAR_OP,
 		SET_OP, BETWEEN_OP,
 		QUERY_EXCLUSIVE_CELLS,
 		RECT, POLYGON, PATH, POINT,
@@ -83,6 +85,8 @@ struct Token {
 		COMPASS_OP,
 		RELEVANT_ELEMENT_OP,
 		BETWEEN_OP,
+		IN_OP,
+		NEAR_OP,
 		SET_OP,
 		GEO_RECT,
 		GEO_POLYGON,
@@ -188,6 +192,10 @@ public:
 		sserialize::CellQueryResult calcBetweenOp(const sserialize::CellQueryResult & c1, const sserialize::CellQueryResult & c2);
 		sserialize::CellQueryResult calcCompassOp(Node * node, const sserialize::CellQueryResult & cqr);
 		sserialize::CellQueryResult calcRelevantElementOp(Node * node, const sserialize::CellQueryResult & cqr);
+		sserialize::CellQueryResult calcNearOp(Node * node, const sserialize::CellQueryResult & cqr);
+		sserialize::CellQueryResult calcInOp(Node * node, const sserialize::CellQueryResult & cqr);
+		///th in [0, 1]
+		sserialize::ItemIndex calcDilateRegionOp(double th, const sserialize::CellQueryResult & cqr);
 		sserialize::ItemIndex calcDilateRegionOp(Node * node, const sserialize::CellQueryResult & cqr);
 		static std::vector<double> asDoubles(const std::string & str);
 	};
@@ -220,6 +228,8 @@ public:
 		CQRType calcRegionDilationOp(Node * node);
 		CQRType calcQueryExclusiveCells(Node * node);
 		CQRType calcCompassOp(Node * node);
+		CQRType calcNearOp(Node * node);
+		CQRType calcInOp(Node * node);
 		CQRType calcRelevantElementOp(Node * node);
 		CQRType calcBinaryOp(Node * node);
 		CQRType calcBetweenOp(Node * node);
@@ -525,6 +535,13 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcQueryExclusiveCells(AdvancedCellOpTree
 	return CQRType(idx, gh(), idxStore(), cqr.flags()) / cqr;
 }
 
+template<typename T_CQR_TYPE>
+T_CQR_TYPE
+AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcNearOp(AdvancedCellOpTree::Node* node) {
+	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 1);
+	return calc(node->children.front()).allToFull();
+}
+
 template<>
 sserialize::CellQueryResult
 AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcBetweenOp(AdvancedCellOpTree::Node* node);
@@ -540,6 +557,14 @@ AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcCompassOp(AdvancedCel
 template<>
 sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcCompassOp(AdvancedCellOpTree::Node* node);
+
+template<>
+sserialize::CellQueryResult
+AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcInOp(AdvancedCellOpTree::Node* node);
+
+template<>
+sserialize::TreedCellQueryResult
+AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcInOp(AdvancedCellOpTree::Node* node);
 
 template<>
 sserialize::CellQueryResult
