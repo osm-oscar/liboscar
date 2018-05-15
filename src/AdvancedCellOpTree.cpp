@@ -748,16 +748,6 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcRelevantElementOp(
 	return m_csq.relevantElementOp(cqr);
 }
 
-
-sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcNearOp(Node *, const sserialize::CellQueryResult & cqr) {
-	return sserialize::CellQueryResult(
-		calcDilateRegionOp(0.9, cqr),
-		cqr.geoHierarchy(),
-		cqr.idxStore(),
-		cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
-	);
-}
-
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcInOp(Node *, const sserialize::CellQueryResult & cqr) {
 	return sserialize::CellQueryResult(
 		calcDilateRegionOp(0.9, cqr),
@@ -964,20 +954,6 @@ sserialize::TreedCellQueryResult
 AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcInOp(AdvancedCellOpTree::Node* node) {
 	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 1);
 	return sserialize::TreedCellQueryResult( CalcBase::calcInOp(node, toCQR(calc(node->children.front()))) );
-}
-
-template<>
-sserialize::CellQueryResult
-AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcNearOp(AdvancedCellOpTree::Node* node) {
-	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 1);
-	return CalcBase::calcNearOp(node, calc(node->children.front()));
-}
-
-template<>
-sserialize::TreedCellQueryResult
-AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcNearOp(AdvancedCellOpTree::Node* node) {
-	SSERIALIZE_CHEAP_ASSERT(node->children.size() == 1);
-	return sserialize::TreedCellQueryResult( CalcBase::calcNearOp(node, toCQR(calc(node->children.front()))) );
 }
 
 template<>

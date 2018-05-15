@@ -192,7 +192,6 @@ public:
 		sserialize::CellQueryResult calcBetweenOp(const sserialize::CellQueryResult & c1, const sserialize::CellQueryResult & c2);
 		sserialize::CellQueryResult calcCompassOp(Node * node, const sserialize::CellQueryResult & cqr);
 		sserialize::CellQueryResult calcRelevantElementOp(Node * node, const sserialize::CellQueryResult & cqr);
-		sserialize::CellQueryResult calcNearOp(Node * node, const sserialize::CellQueryResult & cqr);
 		sserialize::CellQueryResult calcInOp(Node * node, const sserialize::CellQueryResult & cqr);
 		///th in [0, 1]
 		sserialize::ItemIndex calcDilateRegionOp(double th, const sserialize::CellQueryResult & cqr);
@@ -636,6 +635,10 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 			return calcRegionDilationOp(node);
 		case Node::COMPASS_OP:
 			return calcCompassOp(node);
+		case Node::IN_OP:
+			return calcInOp(node);
+		case Node::NEAR_OP:
+			return calcNearOp(node);
 		case Node::RELEVANT_ELEMENT_OP:
 			return calcRelevantElementOp(node);
 		case Node::QUERY_EXCLUSIVE_CELLS:
