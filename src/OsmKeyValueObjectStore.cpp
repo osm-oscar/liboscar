@@ -309,6 +309,11 @@ void OsmKeyValueObjectStoreItem::dump() {
 	print(std::cout, true);
 }
 
+std::ostream & OsmKeyValueObjectStoreItem::operator<<(std::ostream & out) const {
+	print(out, false);
+	return out;
+}
+
 std::string OsmKeyValueObjectStoreItem::getAllStrings() const {
 	uint8_t strC = strCount();
 	switch (strC) {

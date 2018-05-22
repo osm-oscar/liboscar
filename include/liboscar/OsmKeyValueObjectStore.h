@@ -223,6 +223,7 @@ public:
 	
 	void print(std::ostream& out, bool withGeoPoints) const;
 	void dump();
+	std::ostream & operator<<(std::ostream & out) const;
 	std::string getAllStrings() const;
 	inline std::string getAllPoIAsString() const { return std::string("no support");}
 	std::string getAllGeoPointsAsString() const;
