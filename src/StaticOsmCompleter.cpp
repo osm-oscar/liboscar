@@ -340,6 +340,13 @@ OsmCompleter::clusteredComplete(
 	return this->clusteredComplete(query, m_ghsg, minCq4SparseSubSet, treedCQR, threadCount);
 }
 
+sserialize::Static::spatial::GeoHierarchy::SubSet
+OsmCompleter::clusteredComplete(
+	const std::string& query)
+{
+	return this->clusteredComplete(query, m_ghsg, std::numeric_limits<uint32_t>::max(), false, 1);
+}
+
 TagStore OsmCompleter::tagStore() const {
 	if (m_tagCompleter.priv()) {
 		return m_tagCompleter->tagStore();

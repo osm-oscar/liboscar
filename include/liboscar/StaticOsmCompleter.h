@@ -94,6 +94,7 @@ public:
 	sserialize::CellQueryResult cqrComplete(const std::string & query, bool treedCQR = false, uint32_t threadCount = 1);
 	sserialize::Static::spatial::GeoHierarchy::SubSet clusteredComplete(const std::string& query, const sserialize::spatial::GeoHierarchySubGraph & ghs, uint32_t minCq4SparseSubSet, bool treedCQR = false, uint32_t threadCount = 1);
 	sserialize::Static::spatial::GeoHierarchy::SubSet clusteredComplete(const std::string& query, uint32_t minCq4SparseSubSet, bool treedCQR = false, uint32_t threadCount = 1);
+	sserialize::Static::spatial::GeoHierarchy::SubSet clusteredComplete(const std::string & query);
 	Static::TagStore tagStore() const;
 };
 
