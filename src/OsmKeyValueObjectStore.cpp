@@ -309,8 +309,8 @@ void OsmKeyValueObjectStoreItem::dump() {
 	print(std::cout, true);
 }
 
-std::ostream & OsmKeyValueObjectStoreItem::operator<<(std::ostream & out) const {
-	print(out, false);
+std::ostream & operator<<(std::ostream & out, const OsmKeyValueObjectStoreItem & item) {
+	item.print(out, false);
 	return out;
 }
 
