@@ -829,8 +829,7 @@ CQRFromComplexSpatialQuery::determineQueryItemType(const sserialize::CellQueryRe
 	if (best.fmc < best.rcc && best.pmc + best.fmc < m_itemQueryCellCountTh) {
 		sserialize::ItemIndex items( cqr.flaten() );
 		if (!items.size()) {
-			cqr.dump(std::cerr);
-			SSERIALIZE_CHEAP_ASSERT(false);
+			throw sserialize::BugException("CQR items are empty, but cells are not");
 		}
 		if (items.size() < m_itemQueryItemCountTh) {
 			qit = QIT_ITEM;
