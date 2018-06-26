@@ -108,9 +108,9 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 	case liboscar::CQRFromPolygon::AC_POLYGON_CELL:
 		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), geoHierarchy(), idxStore(), cqrFlags);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX:
-		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemBBoxIntersectOp>(gp);
+		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemBBoxIntersectOp>(gp).convert(cqrFlags);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM:
-		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemIntersectOp>(gp);
+		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemIntersectOp>(gp).convert(cqrFlags);
 	default:
 		throw sserialize::InvalidEnumValueException("CQRFromPolygon::Accuracy does not have " + std::to_string(ac) + " as value");
 		return sserialize::CellQueryResult();;
@@ -153,7 +153,7 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 			idxStore(),
 			sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS
 		);
-		return result;
+		return result.convert(cqrFlags);
 	}
 	else {
 		return cqr(sserialize::spatial::GeoPolygon::fromRect(sserialize::spatial::GeoRect(gp.lat(), gp.lon(), radius)), ac, cqrFlags, threadCount);
