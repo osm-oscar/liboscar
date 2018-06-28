@@ -4,17 +4,20 @@ project(liboscar)
 set(CMAKE_MODULE_PATH
 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/
 ${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/cmake/
+${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/vendor/libdts2/vendor/libratss/cmake/
 )
 
 include(AddTargetProperties)
 include(set_highest_cpp)
 
 find_package(LIBRT)
+find_package(CGALSimple)
 
 if (LIBOSCAR_NO_DATA_REFCOUNTING_ENABLED)
 	set(MY_COMPILE_DEFINITIONS "-DWITH_LIBOSCAR_NO_DATA_REFCOUNTING")
 	set(SSERIALIZE_UBA_OPTIONAL_REFCOUNTING_ENABLED TRUE CACHE BOOL "" FORCE)
 endif(LIBOSCAR_NO_DATA_REFCOUNTING_ENABLED)
+
 set(LIBOSCAR_NO_DATA_REFCOUNTING_ENABLED
 	${LIBOSCAR_NO_DATA_REFCOUNTING_ENABLED}
 	CACHE
@@ -27,6 +30,7 @@ add_subdirectory(vendor/sserialize sserialize)
 set(LIBOSCAR_INCLUDE_DIR
 	"${CMAKE_CURRENT_SOURCE_DIR}/include"
 	${SSERIALIZE_INCLUDE_DIR}
+	${LIBCGAL_INCLUDE_DIR}
 	CACHE STRING "liboscar include directories"
 	FORCE
 )
@@ -62,7 +66,10 @@ include_directories(
 	${LIBOSCAR_INCLUDE_DIR}
 )
 
-file(GLOB_RECURSE INCLUDE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
+file(GLOB_RECURSE
+	LIBOSCAR_HEADERS
+	${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+)
 
 set(LIBOSCAR_SOURCES_CPP
 	src/StaticOsmCompleter.cpp
@@ -82,11 +89,7 @@ set(LIBOSCAR_SOURCES_CPP
 SET(LIBOSCAR_LINK_LIBS
 	${SSERIALIZE_LINK_LIBRARIES}
 	${LIBRT_LIBRARIES}
-	"CGAL"
-	"mpfr"
-	"gmp"
-	"boost_thread"
-	"boost_system"
+	${LIBCGAL_LIBRARIES}
 )
 
 add_library(${PROJECT_NAME} STATIC
