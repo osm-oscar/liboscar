@@ -8,6 +8,7 @@
 #include <liboscar/tagcompleters.h>
 #include <liboscar/TextSearch.h>
 #include <liboscar/GeoSearch.h>
+#include <liboscar/CellDistanceByAnulus.h>
 #include <sserialize/Static/CellTextCompleter.h>
 #include <sserialize/search/GeoCompleter.h>
 #include <sserialize/spatial/GeoConstraintSetOpTreeEF.h>
@@ -38,6 +39,7 @@ private:
 	///maps from TextSearch::Type->(Position, StringCompleter)
 	uint8_t m_selectedGeoCompleter;
 	sserialize::spatial::GeoHierarchySubGraph m_ghsg;
+	std::shared_ptr<sserialize::spatial::interface::CellDistance> m_cellDistance;
 	
 private:
 	sserialize::RCPtrWrapper<TagCompleter> m_tagCompleter;
@@ -53,6 +55,8 @@ private:
 		itemSet.registerSelectableOpFilter( m_tagPhraseCompleter.priv() );
 	}
 	sserialize::StringCompleter getItemsCompleter() const;
+public:
+	typedef enum {CDT_CENTER_OF_MASS, CDT_ANULUS} CellDistanceType;
 public:
 	OsmCompleter();
 	virtual ~OsmCompleter();
@@ -76,6 +80,7 @@ public:
 	
 	bool setTextSearcher(TextSearch::Type t, uint8_t pos);
 	bool setGeoCompleter(uint8_t pos);
+	bool setCellDistance(CellDistanceType cdt);
 	
 	inline uint8_t selectedGeoCompleter() { return m_selectedGeoCompleter; }
 	inline uint8_t selectedTextSearcher(TextSearch::Type t) { return m_textSearch.selectedTextSearcher(t); }

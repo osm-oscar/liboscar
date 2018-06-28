@@ -65,6 +65,23 @@ bool OsmCompleter::setGeoCompleter(uint8_t pos) {
 	return false;
 }
 
+bool OsmCompleter::setCellDistance(CellDistanceType cdt) {
+	switch(cdt) {
+	case CDT_CENTER_OF_MASS:
+		m_cellDistance.reset(new sserialize::Static::spatial::CellDistanceByCellCenter( m_store.cellCenterOfMass() ));
+		return true;
+	case CDT_ANULUS:
+		m_cellDistance.reset(
+			new liboscar::CellDistanceByAnulus(
+				liboscar::CellDistanceByAnulus::cellInfo(m_store.regionArrangement())
+			)
+		);
+		return true;
+	default:
+		return false;
+	};
+}
+
 bool OsmCompleter::setTextSearcher(TextSearch::Type t, uint8_t pos) {
 	return m_textSearch.select(t, pos);
 }
@@ -272,6 +289,8 @@ void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsg
 		ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_IN_MEMORY;
 	}
 	m_ghsg = sserialize::spatial::GeoHierarchySubGraph(m_store.geoHierarchy(), indexStore(), ghsgType);
+	
+	setCellDistance(CDT_CENTER_OF_MASS);
 }
 
 void processCompletionToken(std::string & q, sserialize::StringCompleter::QuerryType & qt) {
@@ -294,7 +313,7 @@ OsmCompleter::cqrComplete(
 		throw sserialize::UnsupportedFeatureException("OsmCompleter::cqrComplete data has no CellTextCompleter");
 	}
 	sserialize::Static::CellTextCompleter cmp( m_textSearch.get<liboscar::TextSearch::Type::GEOCELL>() );
-	sserialize::Static::CQRDilator cqrd(store().cellCenterOfMass(), store().cellGraph());
+	sserialize::Static::CQRDilator cqrd(m_cellDistance, store().cellGraph());
 	CQRFromPolygon cqrfp(store(), indexStore());
 	CQRFromComplexSpatialQuery csq(ghsg, cqrfp);
 	if (!treedCQR) {
