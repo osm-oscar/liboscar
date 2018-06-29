@@ -10,8 +10,8 @@ public:
 	typedef sserialize::Static::spatial::TriangulationGeoHierarchyArrangement TriangulationGeoHierarchyArrangement;
 	struct CellInfo {
 		sserialize::spatial::GeoPoint center;
-		double innerDiameter;
-		double outerDiameter;
+		double innerRadius;
+		double outerRadius;
 	};
 public:
 	CellDistanceByAnulus(const std::vector<CellInfo> & d);

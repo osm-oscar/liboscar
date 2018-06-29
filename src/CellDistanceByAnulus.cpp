@@ -28,13 +28,13 @@ double CellDistanceByAnulus::distance(uint32_t cellId1, uint32_t cellId2) const 
 	
 	double centerDistance = CellDistance::distance(ci1.center, ci2.center);
 	
-	return std::max<double>(0.0, centerDistance - ci1.outerDiameter - ci2.outerDiameter);
+	return std::max<double>(0.0, centerDistance - ci1.outerRadius - ci2.outerRadius);
 }
 
 double CellDistanceByAnulus::distance(const sserialize::spatial::GeoPoint & gp, uint32_t cellId) const {
 	const CellInfo & ci = m_ci.at(cellId);
 	double centerDistance = CellDistance::distance(ci.center, gp);
-	return std::max<double>(0.0, centerDistance - ci.outerDiameter);
+	return std::max<double>(0.0, centerDistance - ci.outerRadius);
 }
 
 std::vector<CellDistanceByAnulus::CellInfo>
@@ -63,9 +63,14 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra)
 	for(uint32_t cellId(0), s(tra.cellCount()); cellId < s; ++cellId) {
 		pts.clear();
 		cgalpts.clear();
-		tra.cfGraph(cellId).visitCB([&pts](const auto & face) {
-			for(uint32_t i(0); i < 3; ++i) {
-				pts.emplace( face.point(i) );
+		tra.cfGraph(cellId).visitCB([&pts, &tra, cellId](const auto & face) {
+			for (uint32_t j(0); j < 3; ++j) {
+				uint32_t nId = face.neighborId(j);
+				uint32_t ncId = tra.cellIdFromFaceId(nId);
+				if (ncId != cellId) { //only insert points of border edges
+					pts.emplace( face.point( tra.tds().ccw(j) ) );
+					pts.emplace( face.point( tra.tds().cw(j) ) );
+				}
 			}
 		});
 		for(const auto & x : pts) {
@@ -73,11 +78,34 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra)
 		}
 		Min_annulus ma(cgalpts.begin(), cgalpts.end());
 		CellInfo ci;
-// 		auto center = ma.center();
-// 		ci.center = sserialize::spatial::GeoPoint(CGAL::to_double(center.x()), CGAL::to_double(center.y()));
-// 		ci.innerDiameter = CGAL::sqrt( ma.squared_inner_radius() );
-// 		ci.outerDiameter = CGAL::sqrt( ma.squared_outer_radius() );
-		
+		{
+			auto ccit = ma.center_coordinates_begin();
+			auto center_x = *ccit;
+			++ccit;
+			auto center_y = *ccit;
+			++ccit;
+			auto center_h = *ccit;
+			ci.center.lat() = CGAL::to_double(center_x) / CGAL::to_double(center_h);
+			ci.center.lon() = CGAL::to_double(center_y) / CGAL::to_double(center_h);
+		}
+		{ //get the outer/inner radius by iterating over the support points
+			ci.outerRadius = 0.0;
+			ci.innerRadius = std::numeric_limits<double>::max();
+			sserialize::spatial::GeoPoint gp;
+			for(auto it(ma.outer_support_points_begin()), sit(ma.outer_support_points_end()); it != sit; ++it) {
+				auto p = *it;
+				gp.lat() = CGAL::to_double( p.x() );
+				gp.lon() = CGAL::to_double( p.y() );
+				ci.outerRadius = std::max(ci.outerRadius, CellDistance::distance(ci.center, gp));
+			}
+			for(auto it(ma.inner_support_points_begin()), sit(ma.inner_support_points_end()); it != sit; ++it) {
+				auto p = *it;
+				gp.lat() = CGAL::to_double( p.x() );
+				gp.lon() = CGAL::to_double( p.y() );
+				ci.innerRadius = std::min(ci.outerRadius, CellDistance::distance(ci.center, gp));
+			}
+			std::cout << "CellId=" << cellId << "; center:" << ci.center << "; innerRadius=" << ci.innerRadius << "; outerRadius=" << ci.outerRadius << std::endl;
+		}
 		d.push_back(ci);
 	}
 	return d;
