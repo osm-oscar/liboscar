@@ -56,6 +56,12 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra)
 	typedef K::Point_2 Point;
 	typedef CGAL::Min_annulus_d<Traits> Min_annulus;
 	
+	struct State {
+		double maxRadius = 0;
+		uint32_t maxRadiusCellId = 0;
+	} state;
+	
+	
 	std::unordered_set<std::pair<double, double>> pts;
 	std::vector<Point> cgalpts;
 	std::vector<CellDistanceByAnulus::CellInfo> d;
@@ -104,10 +110,14 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra)
 				gp.lon() = CGAL::to_double( p.y() );
 				ci.innerRadius = std::min(ci.outerRadius, CellDistance::distance(ci.center, gp));
 			}
-			std::cout << "CellId=" << cellId << "; center:" << ci.center << "; innerRadius=" << ci.innerRadius << "; outerRadius=" << ci.outerRadius << std::endl;
+		}
+		if (ci.outerRadius > state.maxRadius) {
+			state.maxRadius = ci.outerRadius;
+			state.maxRadiusCellId = cellId;
 		}
 		d.push_back(ci);
 	}
+	std::cout << "Largest sphere: cellId=" << state.maxRadiusCellId << "; center:" << d.at(state.maxRadiusCellId).center << "; radius=" << d.at(state.maxRadiusCellId).outerRadius << std::endl;
 	return d;
 }
 

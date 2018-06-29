@@ -85,6 +85,7 @@ set(LIBOSCAR_SOURCES_CPP
 	src/CQRFromPolygon.cpp
 	src/CQRFromComplexSpatialQuery.cpp
 	src/CellDistanceByAnulus.cpp
+	src/CellDistanceBySphere.cpp
 )
 
 SET(LIBOSCAR_LINK_LIBS

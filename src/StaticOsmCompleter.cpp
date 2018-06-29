@@ -9,6 +9,8 @@
 #include <liboscar/tagcompleters.h>
 #include <liboscar/CellOpTree.h>
 #include <liboscar/AdvancedCellOpTree.h>
+#include <liboscar/CellDistanceByAnulus.h>
+#include <liboscar/CellDistanceBySphere.h>
 #include <sserialize/search/StringCompleterPrivateMulti.h>
 #include <sserialize/search/StringCompleterPrivateGeoHierarchyUnclustered.h>
 #include <sserialize/Static/StringCompleter.h>
@@ -74,6 +76,20 @@ bool OsmCompleter::setCellDistance(CellDistanceType cdt) {
 		m_cellDistance.reset(
 			new liboscar::CellDistanceByAnulus(
 				liboscar::CellDistanceByAnulus::cellInfo(m_store.regionArrangement())
+			)
+		);
+		return true;
+	case CDT_MIN_SPHERE:
+		m_cellDistance.reset(
+			new liboscar::CellDistanceBySphere(
+				liboscar::CellDistanceBySphere::minSpheres(m_store.regionArrangement())
+			)
+		);
+		return true;
+	case CDT_SPHERE:
+		m_cellDistance.reset(
+			new liboscar::CellDistanceBySphere(
+				liboscar::CellDistanceBySphere::spheres(m_store.regionArrangement())
 			)
 		);
 		return true;

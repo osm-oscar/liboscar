@@ -8,7 +8,7 @@
 #include <liboscar/tagcompleters.h>
 #include <liboscar/TextSearch.h>
 #include <liboscar/GeoSearch.h>
-#include <liboscar/CellDistanceByAnulus.h>
+#include <sserialize/spatial/CellDistance.h>
 #include <sserialize/Static/CellTextCompleter.h>
 #include <sserialize/search/GeoCompleter.h>
 #include <sserialize/spatial/GeoConstraintSetOpTreeEF.h>
@@ -56,7 +56,7 @@ private:
 	}
 	sserialize::StringCompleter getItemsCompleter() const;
 public:
-	typedef enum {CDT_CENTER_OF_MASS, CDT_ANULUS} CellDistanceType;
+	typedef enum {CDT_CENTER_OF_MASS, CDT_ANULUS, CDT_MIN_SPHERE, CDT_SPHERE} CellDistanceType;
 public:
 	OsmCompleter();
 	virtual ~OsmCompleter();
