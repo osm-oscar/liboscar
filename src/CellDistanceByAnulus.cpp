@@ -1,5 +1,7 @@
 #include <liboscar/CellDistanceByAnulus.h>
+
 #include <sserialize/algorithm/hashspecializations.h>
+#include <sserialize/mt/ThreadPool.h>
 
 #include <CGAL/Min_annulus_d.h>
 #include <CGAL/Min_sphere_annulus_d_traits_2.h>
@@ -38,7 +40,7 @@ double CellDistanceByAnulus::distance(const sserialize::spatial::GeoPoint & gp, 
 }
 
 std::vector<CellDistanceByAnulus::CellInfo>
-CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra) {
+CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra, uint32_t threadCount) {
 // 	typedef CGAL::Exact_integer ET; //this breaks
 	
 	typedef CGAL::Gmpzf ET;
@@ -59,66 +61,87 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra)
 	struct State {
 		double maxRadius = 0;
 		uint32_t maxRadiusCellId = 0;
-	} state;
+		const TriangulationGeoHierarchyArrangement & tra;
+		std::atomic<uint32_t> cellId{0};
+		std::vector<CellDistanceByAnulus::CellInfo> d;
+		std::mutex mtx;
+		State(const TriangulationGeoHierarchyArrangement & tra) : tra(tra), d(tra.cellCount()) {}
+	};
 	
-	
-	std::unordered_set<std::pair<double, double>> pts;
-	std::vector<Point> cgalpts;
-	std::vector<CellDistanceByAnulus::CellInfo> d;
-	d.reserve(tra.cellCount());
-	for(uint32_t cellId(0), s(tra.cellCount()); cellId < s; ++cellId) {
-		pts.clear();
-		cgalpts.clear();
-		tra.cfGraph(cellId).visitCB([&pts, &tra, cellId](const auto & face) {
-			for (uint32_t j(0); j < 3; ++j) {
-				uint32_t nId = face.neighborId(j);
-				uint32_t ncId = tra.cellIdFromFaceId(nId);
-				if (ncId != cellId) { //only insert points of border edges
-					pts.emplace( face.point( tra.tds().ccw(j) ) );
-					pts.emplace( face.point( tra.tds().cw(j) ) );
+	struct Worker {
+		State * state;
+		std::unordered_set<std::pair<double, double>> pts;
+		std::vector<Point> cgalpts;
+		Worker(State * state) : state(state) {}
+// 		Worker(const Worker & other) = delete;
+		Worker(Worker && other) : state(other.state) {}
+		Worker(const Worker & other) : state(other.state) {}
+		void operator()() {
+			while(true) {
+				uint32_t cellId = state->cellId.fetch_add(1, std::memory_order_relaxed);
+				if (cellId >= state->d.size()) {
+					break;
+				}
+				process(cellId);
+			}
+		}
+		void process(uint32_t cellId) {
+			pts.clear();
+			cgalpts.clear();
+			state->tra.cfGraph(cellId).visitCB([this, cellId](const auto & face) {
+				for (uint32_t j(0); j < 3; ++j) {
+					uint32_t nId = face.neighborId(j);
+					uint32_t ncId = state->tra.cellIdFromFaceId(nId);
+					if (ncId != cellId) { //only insert points of border edges
+						pts.emplace( face.point( state->tra.tds().ccw(j) ) );
+						pts.emplace( face.point( state->tra.tds().cw(j) ) );
+					}
+				}
+			});
+			for(const auto & x : pts) {
+				cgalpts.push_back( Point(x.first, x.second) );
+			}
+// 			std::lock_guard<std::mutex> lck(state->mtx);
+			Min_annulus ma(cgalpts.begin(), cgalpts.end());
+			CellInfo & ci = state->d.at(cellId);
+			{
+				auto ccit = ma.center_coordinates_begin();
+				auto center_x = *ccit;
+				++ccit;
+				auto center_y = *ccit;
+				++ccit;
+				auto center_h = *ccit;
+				ci.center.lat() = CGAL::to_double(center_x) / CGAL::to_double(center_h);
+				ci.center.lon() = CGAL::to_double(center_y) / CGAL::to_double(center_h);
+			}
+			{ //get the outer/inner radius by iterating over the support points
+				ci.outerRadius = 0.0;
+				ci.innerRadius = std::numeric_limits<double>::max();
+				sserialize::spatial::GeoPoint gp;
+				for(auto it(ma.outer_support_points_begin()), sit(ma.outer_support_points_end()); it != sit; ++it) {
+					auto p = *it;
+					gp.lat() = CGAL::to_double( p.x() );
+					gp.lon() = CGAL::to_double( p.y() );
+					ci.outerRadius = std::max(ci.outerRadius, CellDistance::distance(ci.center, gp));
+				}
+				for(auto it(ma.inner_support_points_begin()), sit(ma.inner_support_points_end()); it != sit; ++it) {
+					auto p = *it;
+					gp.lat() = CGAL::to_double( p.x() );
+					gp.lon() = CGAL::to_double( p.y() );
+					ci.innerRadius = std::min(ci.outerRadius, CellDistance::distance(ci.center, gp));
 				}
 			}
-		});
-		for(const auto & x : pts) {
-			cgalpts.push_back( Point(x.first, x.second) );
-		}
-		Min_annulus ma(cgalpts.begin(), cgalpts.end());
-		CellInfo ci;
-		{
-			auto ccit = ma.center_coordinates_begin();
-			auto center_x = *ccit;
-			++ccit;
-			auto center_y = *ccit;
-			++ccit;
-			auto center_h = *ccit;
-			ci.center.lat() = CGAL::to_double(center_x) / CGAL::to_double(center_h);
-			ci.center.lon() = CGAL::to_double(center_y) / CGAL::to_double(center_h);
-		}
-		{ //get the outer/inner radius by iterating over the support points
-			ci.outerRadius = 0.0;
-			ci.innerRadius = std::numeric_limits<double>::max();
-			sserialize::spatial::GeoPoint gp;
-			for(auto it(ma.outer_support_points_begin()), sit(ma.outer_support_points_end()); it != sit; ++it) {
-				auto p = *it;
-				gp.lat() = CGAL::to_double( p.x() );
-				gp.lon() = CGAL::to_double( p.y() );
-				ci.outerRadius = std::max(ci.outerRadius, CellDistance::distance(ci.center, gp));
+			if (ci.outerRadius > state->maxRadius) {
+				state->maxRadius = ci.outerRadius;
+				state->maxRadiusCellId = cellId;
 			}
-			for(auto it(ma.inner_support_points_begin()), sit(ma.inner_support_points_end()); it != sit; ++it) {
-				auto p = *it;
-				gp.lat() = CGAL::to_double( p.x() );
-				gp.lon() = CGAL::to_double( p.y() );
-				ci.innerRadius = std::min(ci.outerRadius, CellDistance::distance(ci.center, gp));
-			}
-		}
-		if (ci.outerRadius > state.maxRadius) {
-			state.maxRadius = ci.outerRadius;
-			state.maxRadiusCellId = cellId;
-		}
-		d.push_back(ci);
-	}
-	std::cout << "Largest sphere: cellId=" << state.maxRadiusCellId << "; center:" << d.at(state.maxRadiusCellId).center << "; radius=" << d.at(state.maxRadiusCellId).outerRadius << std::endl;
-	return d;
+		};
+	};
+	
+	State state(tra);
+	sserialize::ThreadPool::execute(Worker(&state), threadCount, sserialize::ThreadPool::CopyTaskTag() );
+	std::cout << "Largest sphere: cellId=" << state.maxRadiusCellId << "; center:" << state.d.at(state.maxRadiusCellId).center << "; radius=" << state.d.at(state.maxRadiusCellId).outerRadius << std::endl;
+	return state.d;
 }
 
 }//end namespace

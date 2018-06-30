@@ -67,7 +67,7 @@ bool OsmCompleter::setGeoCompleter(uint8_t pos) {
 	return false;
 }
 
-bool OsmCompleter::setCellDistance(CellDistanceType cdt) {
+bool OsmCompleter::setCellDistance(CellDistanceType cdt, uint32_t threadCount) {
 	switch(cdt) {
 	case CDT_CENTER_OF_MASS:
 		m_cellDistance.reset(new sserialize::Static::spatial::CellDistanceByCellCenter( m_store.cellCenterOfMass() ));
@@ -75,7 +75,7 @@ bool OsmCompleter::setCellDistance(CellDistanceType cdt) {
 	case CDT_ANULUS:
 		m_cellDistance.reset(
 			new liboscar::CellDistanceByAnulus(
-				liboscar::CellDistanceByAnulus::cellInfo(m_store.regionArrangement())
+				liboscar::CellDistanceByAnulus::cellInfo(m_store.regionArrangement(), threadCount)
 			)
 		);
 		return true;
@@ -306,7 +306,7 @@ void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsg
 	}
 	m_ghsg = sserialize::spatial::GeoHierarchySubGraph(m_store.geoHierarchy(), indexStore(), ghsgType);
 	
-	setCellDistance(CDT_CENTER_OF_MASS);
+	setCellDistance(CDT_CENTER_OF_MASS, 1);
 }
 
 void processCompletionToken(std::string & q, sserialize::StringCompleter::QuerryType & qt) {

@@ -80,7 +80,7 @@ public:
 	
 	bool setTextSearcher(TextSearch::Type t, uint8_t pos);
 	bool setGeoCompleter(uint8_t pos);
-	bool setCellDistance(CellDistanceType cdt);
+	bool setCellDistance(CellDistanceType cdt, uint32_t threadCount);
 	
 	inline uint8_t selectedGeoCompleter() { return m_selectedGeoCompleter; }
 	inline uint8_t selectedTextSearcher(TextSearch::Type t) { return m_textSearch.selectedTextSearcher(t); }
