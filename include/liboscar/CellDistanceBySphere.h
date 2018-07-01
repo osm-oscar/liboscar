@@ -19,8 +19,8 @@ public:
 	virtual double distance(uint32_t cellId1, uint32_t cellId2) const;
 	virtual double distance(const sserialize::spatial::GeoPoint & gp, uint32_t cellId) const;
 public:
-	static std::vector<CellInfo> minSpheres(const TriangulationGeoHierarchyArrangement & tra);
-	static std::vector<CellInfo> spheres(const TriangulationGeoHierarchyArrangement & tra);
+	static std::vector<CellInfo> minSpheres(const TriangulationGeoHierarchyArrangement & tra, uint32_t threadCount);
+	static std::vector<CellInfo> spheres(const TriangulationGeoHierarchyArrangement & tra, uint32_t threadCount);
 private:
 	std::vector<CellInfo> m_ci;
 };

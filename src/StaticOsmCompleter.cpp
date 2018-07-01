@@ -82,14 +82,14 @@ bool OsmCompleter::setCellDistance(CellDistanceType cdt, uint32_t threadCount) {
 	case CDT_MIN_SPHERE:
 		m_cellDistance.reset(
 			new liboscar::CellDistanceBySphere(
-				liboscar::CellDistanceBySphere::minSpheres(m_store.regionArrangement())
+				liboscar::CellDistanceBySphere::minSpheres(m_store.regionArrangement(), threadCount)
 			)
 		);
 		return true;
 	case CDT_SPHERE:
 		m_cellDistance.reset(
 			new liboscar::CellDistanceBySphere(
-				liboscar::CellDistanceBySphere::spheres(m_store.regionArrangement())
+				liboscar::CellDistanceBySphere::spheres(m_store.regionArrangement(), threadCount)
 			)
 		);
 		return true;

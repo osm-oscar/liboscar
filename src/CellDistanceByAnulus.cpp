@@ -44,6 +44,7 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra,
 // 	typedef CGAL::Exact_integer ET; //this breaks
 	
 	typedef CGAL::Gmpzf ET;
+// 	typedef CGAL::Gmpq ET;
 	typedef CGAL::Homogeneous<double> K;
 	typedef CGAL::Min_sphere_annulus_d_traits_2<K, ET, double> Traits;
 	
@@ -64,7 +65,6 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra,
 		const TriangulationGeoHierarchyArrangement & tra;
 		std::atomic<uint32_t> cellId{0};
 		std::vector<CellDistanceByAnulus::CellInfo> d;
-		std::mutex mtx;
 		State(const TriangulationGeoHierarchyArrangement & tra) : tra(tra), d(tra.cellCount()) {}
 	};
 	
@@ -73,7 +73,6 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra,
 		std::unordered_set<std::pair<double, double>> pts;
 		std::vector<Point> cgalpts;
 		Worker(State * state) : state(state) {}
-// 		Worker(const Worker & other) = delete;
 		Worker(Worker && other) : state(other.state) {}
 		Worker(const Worker & other) : state(other.state) {}
 		void operator()() {
@@ -101,7 +100,6 @@ CellDistanceByAnulus::cellInfo(const TriangulationGeoHierarchyArrangement & tra,
 			for(const auto & x : pts) {
 				cgalpts.push_back( Point(x.first, x.second) );
 			}
-// 			std::lock_guard<std::mutex> lck(state->mtx);
 			Min_annulus ma(cgalpts.begin(), cgalpts.end());
 			CellInfo & ci = state->d.at(cellId);
 			{
