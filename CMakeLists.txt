@@ -84,6 +84,7 @@ set(LIBOSCAR_SOURCES_CPP
 	src/GeoSearch.cpp
 	src/CellOpTree.cpp
 	src/AdvancedCellOpTree.cpp
+	src/AdvancedOpTree.cpp
 	src/CQRFromPolygon.cpp
 	src/CQRFromComplexSpatialQuery.cpp
 	src/CellDistanceByAnulus.cpp
