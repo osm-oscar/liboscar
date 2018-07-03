@@ -7,6 +7,7 @@
 #include <CGAL/Exact_rational.h>
 #include <CGAL/Min_sphere_of_spheres_d.h>
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/config.h>
 
 namespace liboscar {
 
@@ -118,6 +119,11 @@ CellDistanceBySphere::minSpheres(const TriangulationGeoHierarchyArrangement & tr
 	
 	State state(tra);
 	
+	if (double(CGAL_VERSION) < 4.12 && threadCount > 1) {
+		std::cout << "Your CGAL version is too low to support multi-threading. Using only 1 thread" << std::endl;
+		threadCount = 1;
+	}
+	
 	sserialize::ThreadPool::execute(Worker(&state), threadCount, sserialize::ThreadPool::CopyTaskTag());
 	
 	std::cout << "Largest sphere: cellId=" << state.maxRadiusCellId << "; center:" << state.d.at(state.maxRadiusCellId).center << "; radius=" << state.d.at(state.maxRadiusCellId).radius << std::endl;
@@ -184,6 +190,11 @@ CellDistanceBySphere::spheres(const TriangulationGeoHierarchyArrangement & tra, 
 	};
 	
 	State state(tra);
+	
+	if (double(CGAL_VERSION) < 4.12 && threadCount > 1) {
+		std::cout << "Your CGAL version is too low to support multi-threading. Using only 1 thread" << std::endl;
+		threadCount = 1;
+	}
 	
 	sserialize::ThreadPool::execute(Worker(&state), threadCount, sserialize::ThreadPool::CopyTaskTag());
 	
