@@ -119,10 +119,12 @@ CellDistanceBySphere::minSpheres(const TriangulationGeoHierarchyArrangement & tr
 	
 	State state(tra);
 	
-	if (double(CGAL_VERSION) < 4.12 && threadCount > 1) {
+#if CGAL_VERSION_NR < 1041111000
+	if (threadCount > 1) {
 		std::cout << "Your CGAL version is too low to support multi-threading. Using only 1 thread" << std::endl;
 		threadCount = 1;
 	}
+#endif
 	
 	sserialize::ThreadPool::execute(Worker(&state), threadCount, sserialize::ThreadPool::CopyTaskTag());
 	
@@ -191,10 +193,12 @@ CellDistanceBySphere::spheres(const TriangulationGeoHierarchyArrangement & tra, 
 	
 	State state(tra);
 	
-	if (double(CGAL_VERSION) < 4.12 && threadCount > 1) {
+#if CGAL_VERSION_NR < 1041111000
+	if (threadCount > 1) {
 		std::cout << "Your CGAL version is too low to support multi-threading. Using only 1 thread" << std::endl;
 		threadCount = 1;
 	}
+#endif
 	
 	sserialize::ThreadPool::execute(Worker(&state), threadCount, sserialize::ThreadPool::CopyTaskTag());
 	
