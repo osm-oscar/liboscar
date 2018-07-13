@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.9)
 project(liboscar)
 
 set(CMAKE_MODULE_PATH
@@ -8,7 +8,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/vendor/libdts2/vendor/libratss/cma
 )
 
 include(AddTargetProperties)
-include(set_highest_cpp)
 
 find_package(LIBRT)
 find_package(CGALSimple)
@@ -27,45 +26,19 @@ set(LIBOSCAR_NO_DATA_REFCOUNTING_ENABLED
 )
 add_subdirectory(vendor/sserialize sserialize)
 
-set(LIBOSCAR_INCLUDE_DIR
+set(MY_INCLUDE_DIRS
 	"${CMAKE_CURRENT_SOURCE_DIR}/include"
-	${SSERIALIZE_INCLUDE_DIR}
-	${LIBCGAL_INCLUDE_DIR}
-	CACHE STRING "liboscar include directories"
-	FORCE
 )
 
-set(LIBOSCAR_LIBRARIES
-	${PROJECT_NAME}
-	CACHE STRING "liboscar libraries"
-	FORCE
+set(MY_LINK_LIBRARIES
+	sserialize
+	CGALSimple::CGAL
 )
 
-set(LIBOSCAR_LINK_LIBRARIES
-	${PROJECT_NAME}
-	${SSERIALIZE_LINK_LIBRARIES}
-	CACHE STRING "liboscar link libraries"
-	FORCE
-)
-
-set(LIBOSCAR_COMPILE_DEFINITIONS
-	${SSERIALIZE_COMPILE_DEFINITIONS}
-	${MY_COMPILE_DEFINITIONS}
+set(MY_COMPILE_DEFINITIONS
 	"-DCGAL_HAS_THREADS"
 	"-DBOOST_HAS_THREADS"
-	CACHE STRING "liboscar compile definitions"
-	FORCE
-)
-
-mark_as_advanced(
-	LIBOSCAR_INCLUDE_DIR
-	LIBOSCAR_LIBRARIES
-	LIBOSCAR_LINK_LIBRARIES
-	LIBOSCAR_COMPILE_DEFINITIONS
-)
-
-include_directories(
-	${LIBOSCAR_INCLUDE_DIR}
+	${MY_COMPILE_DEFINITIONS}
 )
 
 file(GLOB_RECURSE
@@ -91,17 +64,13 @@ set(LIBOSCAR_SOURCES_CPP
 	src/CellDistanceBySphere.cpp
 )
 
-SET(LIBOSCAR_LINK_LIBS
-	${SSERIALIZE_LINK_LIBRARIES}
-	${LIBRT_LIBRARIES}
-	${LIBCGAL_LIBRARIES}
-)
-
 add_library(${PROJECT_NAME} STATIC
 	${LIBOSCAR_SOURCES_CPP}
-	${INCLUDE_HEADERS}
+	${LIBOSCAR_HEADERS}
 )
-target_link_libraries(${PROJECT_NAME} ${LIBOSCAR_LINK_LIBS}) 
-target_compile_definitions(${PROJECT_NAME} PUBLIC ${LIBOSCAR_COMPILE_DEFINITIONS})
+
+target_link_libraries(${PROJECT_NAME} ${MY_LINK_LIBRARIES}) 
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${MY_COMPILE_DEFINITIONS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${MY_INCLUDE_DIRS})
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 add_target_properties(${PROJECT_NAME} COMPILE_FLAGS -fPIC)
-add_dependencies(${PROJECT_NAME} sserialize)
