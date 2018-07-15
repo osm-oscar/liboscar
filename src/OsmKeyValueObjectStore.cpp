@@ -112,6 +112,15 @@ uint32_t OsmKeyValueObjectStore::toInternalId(uint32_t itemId) const {
 	return priv()->toInternalId(itemId);
 }
 
+OsmKeyValueObjectStore::KVItem OsmKeyValueObjectStore::kvItem(uint32_t pos) const {
+	if (pos < size()) {
+		return priv()->kvItem(pos);
+	}
+	else {
+		return KVItem();
+	}
+}
+
 OsmKeyValueObjectStoreItem OsmKeyValueObjectStore::at(uint32_t pos) const {
 	if (pos < size()) {
 		return OsmKeyValueObjectStoreItem(pos, *this, priv()->kvItem(pos));

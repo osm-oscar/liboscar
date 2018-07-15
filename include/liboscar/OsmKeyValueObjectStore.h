@@ -80,6 +80,7 @@ public:
   
 class OsmKeyValueObjectStore {
 public:
+	typedef sserialize::Static::KeyValueObjectStoreItem KVItem;
 	typedef OsmKeyValueObjectStoreItem Item;
 	typedef sserialize::Static::KeyValueObjectStore KeyValueObjectStore;
 	typedef KeyValueObjectStore::ValueStringTable ValueStringTable;
@@ -125,6 +126,7 @@ public:
 	
 	uint32_t toInternalId(uint32_t itemId) const;
 	
+	KVItem kvItem(uint32_t pos) const;
 	Item at(uint32_t pos) const;
 	
 	bool match(uint32_t pos, const std::pair< std::string, sserialize::StringCompleter::QuerryType > & querry) const;
