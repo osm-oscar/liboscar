@@ -80,6 +80,7 @@ public:
   
 class OsmKeyValueObjectStore {
 public:
+	typedef sserialize::Static::KeyValueObjectStoreItemBase KVItemBase;
 	typedef sserialize::Static::KeyValueObjectStoreItem KVItem;
 	typedef OsmKeyValueObjectStoreItem Item;
 	typedef sserialize::Static::KeyValueObjectStore KeyValueObjectStore;
@@ -126,6 +127,7 @@ public:
 	
 	uint32_t toInternalId(uint32_t itemId) const;
 	
+	KVItemBase kvBaseItem(uint32_t pos) const;
 	KVItem kvItem(uint32_t pos) const;
 	Item at(uint32_t pos) const;
 	
@@ -262,6 +264,7 @@ public:
 	inline const sserialize::Static::spatial::TracGraph & cellGraph() const { return m_cg; }
 	inline const sserialize::Static::Array<sserialize::Static::spatial::GeoPoint> & cellCenterOfMass() const { return m_ccm; }
 	
+	sserialize::Static::KeyValueObjectStoreItemBase kvBaseItem(uint32_t pos) const;
 	sserialize::Static::KeyValueObjectStoreItem kvItem(uint32_t pos) const;
 	
 	sserialize::ItemIndex complete(const sserialize::spatial::GeoRect & rect) const;

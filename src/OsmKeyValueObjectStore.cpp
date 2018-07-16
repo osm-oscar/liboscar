@@ -112,6 +112,16 @@ uint32_t OsmKeyValueObjectStore::toInternalId(uint32_t itemId) const {
 	return priv()->toInternalId(itemId);
 }
 
+
+OsmKeyValueObjectStore::KVItemBase OsmKeyValueObjectStore::kvBaseItem(uint32_t pos) const {
+	if (pos < size()) {
+		return priv()->kvBaseItem(pos);
+	}
+	else {
+		return KVItemBase();
+	}
+}
+
 OsmKeyValueObjectStore::KVItem OsmKeyValueObjectStore::kvItem(uint32_t pos) const {
 	if (pos < size()) {
 		return priv()->kvItem(pos);
@@ -399,6 +409,11 @@ sserialize::UByteArrayAdapter::OffsetType OsmKeyValueObjectStorePrivate::getSize
 	return 1 + m_payload.getSizeInBytes() + m_idToInternalId.getSizeInBytes() +
 			m_kv.getSizeInBytes() + m_gh.getSizeInBytes() +
 			m_ra.getSizeInBytes() + m_cg.getSizeInBytes() + m_ccm.getSizeInBytes();
+}
+
+
+sserialize::Static::KeyValueObjectStoreItemBase OsmKeyValueObjectStorePrivate::kvBaseItem(uint32_t pos) const {
+	return m_kv.baseItem(toInternalId(pos));
 }
 
 sserialize::Static::KeyValueObjectStoreItem OsmKeyValueObjectStorePrivate::kvItem(uint32_t pos) const {
