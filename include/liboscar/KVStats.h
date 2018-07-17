@@ -3,15 +3,33 @@
 #define LIBOSCAR_KVSTATS_H
 
 #include <sserialize/containers/CFLArray.h>
+#include <sserialize/iterator/RangeGenerator.h>
+
 #include <liboscar/OsmKeyValueObjectStore.h>
 
 #include <unordered_map>
+#include <queue>
 
 namespace liboscar {
 namespace detail {
 namespace KVStats {
 	
+struct Data;
+	
+struct SortedData {
+	std::vector<std::pair<std::pair<uint32_t, uint32_t>, uint32_t> keyValueCount;
+	SortedData();
+	SortedData(const SortedData & other) = default;
+	SortedData(const Data & other);
+	SortedData(SortedData && other);
+	SortedData & operator=(SortedData && other);
+	void update(const Static::OsmKeyValueObjectStore::KVItemBase & item);
+	static SortedData merge(const SortedData & first, const SortedData & second);
+};
+
 struct Data {
+// 	using KeyValueCountMap = std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t>;
+	using KeyValueCountMap = std::map<std::pair<uint32_t, uint32_t>, uint32_t>;
 	std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t> keyValueCount;
 	Data();
 	Data(const Data & other) = default;
@@ -20,6 +38,7 @@ struct Data {
 	void update(const Static::OsmKeyValueObjectStore::KVItemBase & item);
 	static Data merge(Data && first, Data && second);
 };
+
 
 struct ValueInfo {
 	uint32_t valueId{ std::numeric_limits<uint32_t>::max() };
@@ -31,6 +50,9 @@ public:
 	KeyInfo();
 	///get the topk entries in value (sorted in arbitrary order)
 	///This function returns offsets into values!
+	///@complexity O( log(k)*values.size() )
+	///@storage O(k)
+	///@param compare(first, second) weak order returning true if first comes before second
 	template<typename TCompare>
 	std::vector<uint32_t> topk(uint32_t k, TCompare compare) const;
 public:
@@ -85,6 +107,7 @@ public:
 	KeyInfoIterator keysEnd();
 	KeyInfoConstIterator keysEnd() const;
 public:
+	///return topk keys
 	template<typename TCompare>
 	std::vector<uint32_t> topk(uint32_t k, TCompare compare) const;
 private:
@@ -111,5 +134,81 @@ private:
 
 }//end namespace
 
+//Implementation
+
+namespace liboscar {
+
+template<typename TCompare>
+std::vector<uint32_t>
+detail::KVStats::KeyInfo::topk(uint32_t k, TCompare compare) const {
+	if (values.size() <= k) {
+		auto range = sserialize::RangeGenerator<uint32_t>::range(0, values.size());
+		return std::vector<uint32_t>(range.begin(), range.end());
+	}
+	auto mycompare = [this, &compare](uint32_t a, uint32_t b) {
+		return ! compare(this->values.at(a), this->values.at(b));
+	};
+	std::priority_queue<uint32_t, std::vector<uint32_t>, decltype(mycompare)> pq(mycompare);
+	//add k items to pq
+	uint32_t i(0);
+	for(; i < k; ++i) {
+		pq.emplace(i);
+	}
+	//now add one and remove one
+	for(uint32_t s(values.size()); i < s; ++i) {
+		pq.emplace(i);
+		pq.pop();
+	}
+	//and retrieve them all, they are sorted from small to large, so inverse the mapping
+	std::vector<uint32_t> result(k);
+	for(auto rit(result.rbegin()), rend(result.rend()); rit != rend; ++rit) {
+		*rit = pq.top();
+		pq.pop();
+	}
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(std::size_t(0), pq.size());
+	return result;
+}
+
+template<typename TCompare>
+std::vector<uint32_t>
+detail::KVStats::Stats::topk(uint32_t k, TCompare compare) const {
+	auto mycompare = [this, &compare](uint32_t a, uint32_t b) -> bool {
+		return ! compare(this->keys().at(a), this->keys().at(b));
+	};
+	auto pos2id = [this](std::vector<uint32_t> & result) -> void {
+		for(uint32_t & x : result) {
+			x = m_keyInfoStore[x].keyId;
+		}
+	};
+	if (keys().size() <= k) {
+		auto range = sserialize::RangeGenerator<uint32_t>::range(0, keys().size());
+		std::vector<uint32_t> result(range.begin(), range.end());
+		std::sort(result.begin(), result.end(), mycompare);
+		pos2id(result);
+		return result;
+	}
+	std::priority_queue<uint32_t, std::vector<uint32_t>, decltype(mycompare)> pq(mycompare);
+	//add k items to pq
+	uint32_t i(0);
+	for(; i < k; ++i) {
+		pq.emplace(i);
+	}
+	//now add one and remove one
+	for(uint32_t s(keys().size()); i < s; ++i) {
+		pq.emplace(i);
+		pq.pop();
+	}
+	//and retrieve them all, they are sorted from small to large, so inverse the mapping
+	std::vector<uint32_t> result(k);
+	for(auto rit(result.rbegin()), rend(result.rend()); rit != rend; ++rit) {
+		*rit = pq.top();
+		pq.pop();
+	}
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(std::size_t(0), pq.size());
+	pos2id(result);
+	return result;
+}
+
+}//end namespace
 
 #endif

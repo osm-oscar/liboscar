@@ -108,6 +108,14 @@ const Stats::KeyInfo & Stats::key(uint32_t keyId) const {
 	return m_keyInfoStore.at( m_keyInfo.at(keyId).offset );
 }
 
+const std::vector<KeyInfo> & Stats::keys() const {
+	return m_keyInfoStore;
+}
+
+std::vector<KeyInfo> & Stats::keys() {
+	return m_keyInfoStore;
+}
+
 Stats::KeyInfoIterator Stats::keysBegin() {
 	return m_keyInfoStore.begin();
 }
@@ -133,7 +141,7 @@ m_store(store)
 
 KVStats::Stats KVStats::stats(const sserialize::ItemIndex & items, uint32_t threadCount) {
 	if (items.type() & sserialize::ItemIndex::RANDOM_ACCESS_NO) {
-		return stats( sserialize::ItemIndex( items.toVector() ) );
+		return stats( sserialize::ItemIndex( items.toVector() ), threadCount);
 	}
 	
 	detail::KVStats::State state(m_store, items);
@@ -163,6 +171,7 @@ KVStats::Stats KVStats::stats(const sserialize::ItemIndex & items, uint32_t thre
 		uint64_t offset = 0;
 		for(auto & x : keyInfo) {
 			detail::KVStats::KeyInfo & ki = keyInfoStore[x.second.offset];
+			ki.keyId = x.first;
 			ki.values.reposition(offset);
 			ki.values.rebind(valueInfoStore.get());
 			offset += ki.values.size();
