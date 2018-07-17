@@ -62,6 +62,7 @@ set(LIBOSCAR_SOURCES_CPP
 	src/CQRFromComplexSpatialQuery.cpp
 	src/CellDistanceByAnulus.cpp
 	src/CellDistanceBySphere.cpp
+	src/KVstats.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC
