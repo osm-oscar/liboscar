@@ -5,6 +5,48 @@
 namespace liboscar {
 namespace detail {
 namespace KVStats {
+	
+SortedData::SortedData() {}
+
+SortedData::SortedData(const Data & other) :
+keyValueCount(other.keyValueCount.begin(), other.keyValueCount.end()) 
+{
+	std::sort(keyValueCount.begin(), keyValueCount.end(), [](const KeyValueCount & a, const KeyValueCount & b) {
+		return a.first < b.first;
+	});
+}
+
+SortedData::SortedData(SortedData && other) :
+keyValueCount(std::move(other.keyValueCount))
+{}
+
+SortedData & SortedData::operator=(SortedData && other) {
+	keyValueCount = std::move(other.keyValueCount);
+	return *this;
+}
+
+SortedData SortedData::merge(const SortedData & first, const SortedData & second) {
+	auto fit(first.keyValueCount.begin()), fend(first.keyValueCount.end());
+	auto sit(second.keyValueCount.begin()), send(second.keyValueCount.end());
+	SortedData result;
+	result.keyValueCount.resize(std::max(first.keyValueCount.size(), second.keyValueCount.size()));
+	for(; fit != fend && sit != fend;) {
+		if (fit->first < sit->first) {
+			result.keyValueCount.emplace_back(*fit);
+			++fit;
+		}
+		else if (sit->first < fit->first) {
+			result.keyValueCount.emplace_back(*sit);
+			++sit;
+		}
+		else {
+			result.keyValueCount.emplace_back(fit->first, fit->second + sit->second);
+			++fit;
+			++sit;
+		}
+	}
+	return result;
+}
 
 Data::Data() {}
 

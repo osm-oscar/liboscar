@@ -13,17 +13,19 @@
 namespace liboscar {
 namespace detail {
 namespace KVStats {
-	
+
 struct Data;
-	
+
 struct SortedData {
-	std::vector<std::pair<std::pair<uint32_t, uint32_t>, uint32_t> keyValueCount;
+	using KeyValue = std::pair<uint32_t, uint32_t>;
+	using KeyValueCount = std::pair<KeyValue, uint32_t>;
+	using KeyValueCountContainer = std::vector<KeyValueCount>;
+	KeyValueCountContainer keyValueCount;
 	SortedData();
 	SortedData(const SortedData & other) = default;
 	SortedData(const Data & other);
 	SortedData(SortedData && other);
 	SortedData & operator=(SortedData && other);
-	void update(const Static::OsmKeyValueObjectStore::KVItemBase & item);
 	static SortedData merge(const SortedData & first, const SortedData & second);
 };
 
