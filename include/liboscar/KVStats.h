@@ -22,15 +22,20 @@ struct Data {
 };
 
 struct ValueInfo {
-	ValueInfo();
-	uint32_t count;
-	uint32_t valueId;
+	uint32_t valueId{ std::numeric_limits<uint32_t>::max() };
+	uint32_t count{0};
 };
 
 struct KeyInfo {
 	KeyInfo();
-	uint32_t count;
+	uint32_t keyId{ std::numeric_limits<uint32_t>::max() };
+	uint32_t count{0};
 	sserialize::CFLArray< std::vector<ValueInfo> > values;
+};
+
+struct KeyInfoPtr {
+	uint32_t offset{ std::numeric_limits<uint32_t>::max() };
+	inline bool valid() const { return offset != std::numeric_limits<uint32_t>::max(); }
 };
 
 struct State {
@@ -58,23 +63,22 @@ public:
 	using ValueInfo = liboscar::detail::KVStats::ValueInfo;
 	using KeyInfo = liboscar::detail::KVStats::KeyInfo;
 public:
-	Stats(std::vector<ValueInfo> && valueStore, std::unordered_map<uint32_t, KeyInfo> && keyInfo);
+	Stats(std::unique_ptr<std::vector<ValueInfo>> && valueInfoStore, std::vector<KeyInfo> && keyInfoStore, std::unordered_map<uint32_t, KeyInfoPtr> && keyInfo);
 	Stats(Stats && other);
-	Stats(const Stats & other) = default;
 	Stats & operator=(Stats && other);
-	Stats & operator=(const Stats & other) = default;
 public:
-	std::unordered_map<uint32_t, KeyInfo> & keyInfo() { return m_keyInfo; }
-	const std::unordered_map<uint32_t, KeyInfo> & keyInfo() const { return m_keyInfo; }
+	KeyInfo & keyInfo(uint32_t keyId);
+	const KeyInfo & keyInfo(uint32_t keyId) const;
 private:
-	std::vector<ValueInfo> m_valueStore;
-	std::unordered_map<uint32_t, KeyInfo> m_keyInfo;
+	std::unique_ptr<std::vector<ValueInfo>> m_valueInfoStore;
+	std::vector<KeyInfo> m_keyInfoStore;
+	std::unordered_map<uint32_t, KeyInfoPtr> m_keyInfo; //keyId -> keyInfoStore
 };
 
 	
 }} //end namespace detail::KVStats
 	
-class KVStats {
+class KVStats final {
 public:
 	using ValueInfo = detail::KVStats::ValueInfo;
 	using KeyInfo = detail::KVStats::KeyInfo;

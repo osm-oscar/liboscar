@@ -38,9 +38,7 @@ Data Data::merge(Data && first, Data && second) {
 	return std::move(first);
 }
 
-ValueInfo::ValueInfo() : count(0), valueId(std::numeric_limits<uint32_t>::max()) {}
-
-KeyInfo::KeyInfo() : count(0), values(sserialize::CFLArray<std::vector<ValueInfo>>::DeferContainerAssignment{}) {}
+KeyInfo::KeyInfo() : values(sserialize::CFLArray<std::vector<ValueInfo>>::DeferContainerAssignment{}) {}
 
 State::State(const Static::OsmKeyValueObjectStore & store, const sserialize::ItemIndex & items) :
 store(store),
@@ -82,21 +80,34 @@ void Worker::flush() {
 }
 
 
-Stats::Stats(std::vector<ValueInfo> && valueStore, std::unordered_map<uint32_t, KeyInfo> && keyInfo) :
-m_valueStore(std::move(valueStore)),
+Stats::Stats(std::unique_ptr<std::vector<ValueInfo>> && valueInfoStore, std::vector<KeyInfo> && keyInfoStore, std::unordered_map<uint32_t, KeyInfoPtr> && keyInfo) :
+m_valueInfoStore(std::move(valueInfoStore)),
+m_keyInfoStore(std::move(keyInfoStore)),
 m_keyInfo(std::move(keyInfo))
 {}
 
 Stats::Stats(Stats && other) :
-m_valueStore(std::move(other.m_valueStore)),
+m_valueInfoStore(std::move(other.m_valueInfoStore)),
+m_keyInfoStore(std::move(other.m_keyInfoStore)),
 m_keyInfo(std::move(other.m_keyInfo))
 {}
 
 Stats & Stats::operator=(Stats && other) {
-	m_valueStore = std::move(other.m_valueStore);
+	m_valueInfoStore = std::move(other.m_valueInfoStore);
+	m_keyInfoStore = std::move(other.m_keyInfoStore);
 	m_keyInfo = std::move(other.m_keyInfo);
+	return *this;
 }
-	
+
+
+Stats::KeyInfo & Stats::keyInfo(uint32_t keyId) {
+	return m_keyInfoStore.at( m_keyInfo.at(keyId).offset );
+}
+
+const Stats::KeyInfo & Stats::keyInfo(uint32_t keyId) const {
+	return m_keyInfoStore.at( m_keyInfo.at(keyId).offset );
+}
+
 }} //end namespace detail::KVStats
 
 
@@ -115,37 +126,43 @@ KVStats::Stats KVStats::stats(const sserialize::ItemIndex & items, uint32_t thre
 	
 	//calculate KeyInfo
 	auto & keyValueCount = state.d.front().keyValueCount;
-	std::vector<detail::KVStats::ValueInfo> valueStore(keyValueCount.size());
-	std::unordered_map<uint32_t, detail::KVStats::KeyInfo> keyInfo;
+	auto valueInfoStore = std::make_unique<std::vector<detail::KVStats::ValueInfo> >(keyValueCount.size());
+	std::vector<detail::KVStats::KeyInfo> keyInfoStore;
+	std::unordered_map<uint32_t, detail::KVStats::KeyInfoPtr> keyInfo;
 	{
 		//get the keys and the number of values per key
 		for(const auto & x : keyValueCount) {
 			const std::pair<uint32_t, uint32_t> & kv = x.first;
 			const uint32_t & kvcount = x.second;
-			detail::KVStats::KeyInfo & ki = keyInfo[kv.first];
+			detail::KVStats::KeyInfoPtr & kiptr = keyInfo[kv.first];
+			if (!kiptr.valid()) {
+				kiptr.offset = keyInfoStore.size();
+				keyInfoStore.resize(keyInfoStore.size()+1);
+			}
+			detail::KVStats::KeyInfo & ki = keyInfoStore[kiptr.offset];
 			ki.count += kvcount;
 			ki.values.resize(ki.values.size()+1);
 		}
 		//init store
 		uint64_t offset = 0;
 		for(auto & x : keyInfo) {
-			detail::KVStats::KeyInfo & ki = x.second;
+			detail::KVStats::KeyInfo & ki = keyInfoStore[x.second.offset];
 			ki.values.reposition(offset);
-			ki.values.rebind(&valueStore);
+			ki.values.rebind(valueInfoStore.get());
 			offset += ki.values.size();
 			ki.values.resize(0);
 		}
 		//copy the values
 		for(const auto & x : keyValueCount) {
 			const std::pair<uint32_t, uint32_t> & kv = x.first;
-			detail::KVStats::KeyInfo & ki = keyInfo[kv.first];
+			detail::KVStats::KeyInfo & ki = keyInfoStore[ keyInfo[kv.first].offset ];
 			ki.values.resize(ki.values.size()+1);
 			ValueInfo & vi = ki.values.back();
 			vi.count = x.second;
 			vi.valueId = kv.second;
 		}
 	}
-	return Stats(std::move(valueStore), std::move(keyInfo));
+	return Stats(std::move(valueInfoStore), std::move(keyInfoStore), std::move(keyInfo));
 }
 	
 }//end namespace
