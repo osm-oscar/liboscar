@@ -100,12 +100,28 @@ Stats & Stats::operator=(Stats && other) {
 }
 
 
-Stats::KeyInfo & Stats::keyInfo(uint32_t keyId) {
+Stats::KeyInfo & Stats::key(uint32_t keyId) {
 	return m_keyInfoStore.at( m_keyInfo.at(keyId).offset );
 }
 
-const Stats::KeyInfo & Stats::keyInfo(uint32_t keyId) const {
+const Stats::KeyInfo & Stats::key(uint32_t keyId) const {
 	return m_keyInfoStore.at( m_keyInfo.at(keyId).offset );
+}
+
+Stats::KeyInfoIterator Stats::keysBegin() {
+	return m_keyInfoStore.begin();
+}
+
+Stats::KeyInfoConstIterator Stats::keysBegin() const {
+	return m_keyInfoStore.cbegin();
+}
+
+Stats::KeyInfoIterator Stats::keysEnd() {
+	return m_keyInfoStore.end();
+}
+
+Stats::KeyInfoConstIterator Stats::keysEnd() const {
+	return m_keyInfoStore.cend();
 }
 
 }} //end namespace detail::KVStats

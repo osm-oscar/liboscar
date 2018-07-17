@@ -26,8 +26,14 @@ struct ValueInfo {
 	uint32_t count{0};
 };
 
-struct KeyInfo {
+class KeyInfo {
+public:
 	KeyInfo();
+	///get the topk entries in value (sorted in arbitrary order)
+	///This function returns offsets into values!
+	template<typename TCompare>
+	std::vector<uint32_t> topk(uint32_t k, TCompare compare) const;
+public:
 	uint32_t keyId{ std::numeric_limits<uint32_t>::max() };
 	uint32_t count{0};
 	sserialize::CFLArray< std::vector<ValueInfo> > values;
@@ -62,13 +68,25 @@ class Stats {
 public:
 	using ValueInfo = liboscar::detail::KVStats::ValueInfo;
 	using KeyInfo = liboscar::detail::KVStats::KeyInfo;
+	using KeyInfoIterator = std::vector<KeyInfo>::iterator;
+	using KeyInfoConstIterator = std::vector<KeyInfo>::const_iterator;
 public:
 	Stats(std::unique_ptr<std::vector<ValueInfo>> && valueInfoStore, std::vector<KeyInfo> && keyInfoStore, std::unordered_map<uint32_t, KeyInfoPtr> && keyInfo);
 	Stats(Stats && other);
 	Stats & operator=(Stats && other);
 public:
-	KeyInfo & keyInfo(uint32_t keyId);
-	const KeyInfo & keyInfo(uint32_t keyId) const;
+	KeyInfo & key(uint32_t keyId);
+	const KeyInfo & key(uint32_t keyId) const;
+	const std::vector<KeyInfo> & keys() const;
+	std::vector<KeyInfo> & keys();
+public:
+	KeyInfoIterator keysBegin();
+	KeyInfoConstIterator keysBegin() const;
+	KeyInfoIterator keysEnd();
+	KeyInfoConstIterator keysEnd() const;
+public:
+	template<typename TCompare>
+	std::vector<uint32_t> topk(uint32_t k, TCompare compare) const;
 private:
 	std::unique_ptr<std::vector<ValueInfo>> m_valueInfoStore;
 	std::vector<KeyInfo> m_keyInfoStore;
