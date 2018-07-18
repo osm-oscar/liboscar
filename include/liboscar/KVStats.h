@@ -4,6 +4,7 @@
 
 #include <sserialize/containers/CFLArray.h>
 #include <sserialize/iterator/RangeGenerator.h>
+#include <sserialize/containers/OADHashTable.h>
 
 #include <liboscar/OsmKeyValueObjectStore.h>
 
@@ -23,16 +24,18 @@ struct SortedData {
 	KeyValueCountContainer keyValueCount;
 	SortedData();
 	SortedData(const SortedData & other) = default;
-	SortedData(const Data & other);
+	SortedData(Data && other);
 	SortedData(SortedData && other);
 	SortedData & operator=(SortedData && other);
-	static SortedData merge(const SortedData & first, const SortedData & second);
+	static SortedData merge(SortedData && first, SortedData && second);
 };
 
 struct Data {
-// 	using KeyValueCountMap = std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t>;
-	using KeyValueCountMap = std::map<std::pair<uint32_t, uint32_t>, uint32_t>;
-	std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t> keyValueCount;
+	using KeyValueCountUnorderedMap = std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t>;
+	using KeyValueCountOADMap = sserialize::OADHashTable<std::pair<uint32_t, uint32_t>, uint32_t>;
+	using KeyValueCountSortedMap = std::map<std::pair<uint32_t, uint32_t>, uint32_t>;
+	using KeyValueCountMap = KeyValueCountOADMap;
+	KeyValueCountMap keyValueCount;
 	Data();
 	Data(const Data & other) = default;
 	Data(Data && other);
@@ -49,7 +52,10 @@ struct ValueInfo {
 
 class KeyInfo {
 public:
+	using ValuesContainer = sserialize::CFLArray< std::vector<ValueInfo> >;
+public:
 	KeyInfo();
+	KeyInfo(uint32_t keyId, std::vector<ValueInfo> * valuesContainer, uint64_t offset, uint32_t size);
 	///get the topk entries in value (sorted in arbitrary order)
 	///This function returns offsets into values!
 	///@complexity O( log(k)*values.size() )
@@ -60,7 +66,7 @@ public:
 public:
 	uint32_t keyId{ std::numeric_limits<uint32_t>::max() };
 	uint32_t count{0};
-	sserialize::CFLArray< std::vector<ValueInfo> > values;
+	ValuesContainer values;
 };
 
 struct KeyInfoPtr {
@@ -69,12 +75,13 @@ struct KeyInfoPtr {
 };
 
 struct State {
+	using DataType = SortedData;
 	const Static::OsmKeyValueObjectStore & store;
 	const sserialize::ItemIndex & items;
 	std::atomic<std::size_t> pos{0};
 	
 	std::mutex lock;
-	std::vector<Data> d;
+	std::vector<DataType> d;
 	
 	State(const Static::OsmKeyValueObjectStore & store, const sserialize::ItemIndex & items);
 };
@@ -130,6 +137,9 @@ public:
 	KVStats(const Static::OsmKeyValueObjectStore & other);
 public:
 	Stats stats(const sserialize::ItemIndex & items, uint32_t threadCount = 1);
+private:
+	Stats stats(detail::KVStats::Data && data);
+	Stats stats(detail::KVStats::SortedData && data);
 private:
 	Static::OsmKeyValueObjectStore m_store;
 };

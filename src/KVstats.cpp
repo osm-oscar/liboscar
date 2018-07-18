@@ -8,12 +8,15 @@ namespace KVStats {
 	
 SortedData::SortedData() {}
 
-SortedData::SortedData(const Data & other) :
+SortedData::SortedData(Data && other) :
 keyValueCount(other.keyValueCount.begin(), other.keyValueCount.end()) 
 {
-	std::sort(keyValueCount.begin(), keyValueCount.end(), [](const KeyValueCount & a, const KeyValueCount & b) {
-		return a.first < b.first;
-	});
+	if (!std::is_same<Data::KeyValueCountMap, Data::KeyValueCountSortedMap>::value) {
+		std::sort(keyValueCount.begin(), keyValueCount.end(), [](const KeyValueCount & a, const KeyValueCount & b) {
+			return a.first < b.first;
+		});
+	}
+	other.keyValueCount.clear();
 }
 
 SortedData::SortedData(SortedData && other) :
@@ -25,12 +28,12 @@ SortedData & SortedData::operator=(SortedData && other) {
 	return *this;
 }
 
-SortedData SortedData::merge(const SortedData & first, const SortedData & second) {
+SortedData SortedData::merge(SortedData && first, SortedData && second) {
 	auto fit(first.keyValueCount.begin()), fend(first.keyValueCount.end());
 	auto sit(second.keyValueCount.begin()), send(second.keyValueCount.end());
 	SortedData result;
-	result.keyValueCount.resize(std::max(first.keyValueCount.size(), second.keyValueCount.size()));
-	for(; fit != fend && sit != fend;) {
+	result.keyValueCount.reserve(std::max(first.keyValueCount.size(), second.keyValueCount.size()));
+	for(; fit != fend && sit != send;) {
 		if (fit->first < sit->first) {
 			result.keyValueCount.emplace_back(*fit);
 			++fit;
@@ -45,6 +48,10 @@ SortedData SortedData::merge(const SortedData & first, const SortedData & second
 			++sit;
 		}
 	}
+	result.keyValueCount.insert(result.keyValueCount.end(), fit, fend);
+	result.keyValueCount.insert(result.keyValueCount.end(), sit, send);
+	first.keyValueCount.clear();
+	second.keyValueCount.clear();
 	return result;
 }
 
@@ -82,6 +89,11 @@ Data Data::merge(Data && first, Data && second) {
 
 KeyInfo::KeyInfo() : values(sserialize::CFLArray<std::vector<ValueInfo>>::DeferContainerAssignment{}) {}
 
+KeyInfo::KeyInfo(uint32_t keyId, std::vector<ValueInfo> * valuesContainer, uint64_t offset, uint32_t size) :
+keyId(keyId),
+values(valuesContainer, offset, size)
+{}
+
 State::State(const Static::OsmKeyValueObjectStore & store, const sserialize::ItemIndex & items) :
 store(store),
 items(items)
@@ -105,19 +117,20 @@ void Worker::operator()() {
 }
 
 void Worker::flush() {
+	State::DataType sd(std::move(d));
 	std::unique_lock<std::mutex> lck(state->lock, std::defer_lock);
 	while(true) {
 		lck.lock();
-		state->d.emplace_back(std::move(d));
+		state->d.emplace_back(std::move(sd));
 		if (state->d.size() < 2) {
 			break;
 		}
-		Data first = std::move(state->d.back());
+		auto first = std::move(state->d.back());
 		state->d.pop_back();
-		Data second = std::move(state->d.back());
+		auto second = std::move(state->d.back());
 		state->d.pop_back();
 		lck.unlock();
-		this->d = Data::merge(std::move(first), std::move(second));
+		sd = State::DataType::merge(std::move(first), std::move(second));
 	}
 }
 
@@ -190,8 +203,12 @@ KVStats::Stats KVStats::stats(const sserialize::ItemIndex & items, uint32_t thre
 	
 	sserialize::ThreadPool::execute(detail::KVStats::Worker(&state), threadCount, sserialize::ThreadPool::CopyTaskTag());
 	
+	return stats(std::move(state.d.front()));
+}
+
+KVStats::Stats KVStats::stats(detail::KVStats::Data && data) {
 	//calculate KeyInfo
-	auto & keyValueCount = state.d.front().keyValueCount;
+	auto & keyValueCount = data.keyValueCount;
 	auto valueInfoStore = std::make_unique<std::vector<detail::KVStats::ValueInfo> >(keyValueCount.size());
 	std::vector<detail::KVStats::KeyInfo> keyInfoStore;
 	std::unordered_map<uint32_t, detail::KVStats::KeyInfoPtr> keyInfo;
@@ -231,5 +248,31 @@ KVStats::Stats KVStats::stats(const sserialize::ItemIndex & items, uint32_t thre
 	}
 	return Stats(std::move(valueInfoStore), std::move(keyInfoStore), std::move(keyInfo));
 }
+
+KVStats::Stats KVStats::stats(detail::KVStats::SortedData && data) {
+	//calculate KeyInfo
+	auto & keyValueCount = data.keyValueCount;
+	auto valueInfoStore = std::make_unique<std::vector<detail::KVStats::ValueInfo> >(keyValueCount.size());
+	std::vector<detail::KVStats::KeyInfo> keyInfoStore;
+	std::unordered_map<uint32_t, detail::KVStats::KeyInfoPtr> keyInfo;
 	
+	//We can calculate the correct data in a single linear sweep
+	uint64_t visOffset = 0;
+	for(auto it(keyValueCount.begin()), end(keyValueCount.end()); it != end;) {
+		uint32_t keyId = it->first.first;
+		keyInfo[keyId].offset = keyInfoStore.size();
+		keyInfoStore.emplace_back(keyId, valueInfoStore.get(), visOffset, detail::KVStats::KeyInfo::ValuesContainer::MaxSize);
+		auto & ki = keyInfoStore.back();
+		auto vit = ki.values.begin();
+		for(; it != end && it->first.first == keyId; ++it, ++vit) {
+			vit->valueId = it->first.second;
+			vit->count = it->second;
+			ki.count += it->second;
+		}
+		ki.values.resize(vit - ki.values.begin());
+		visOffset += ki.values.size();
+	}
+	return Stats(std::move(valueInfoStore), std::move(keyInfoStore), std::move(keyInfo));
+}
+
 }//end namespace
