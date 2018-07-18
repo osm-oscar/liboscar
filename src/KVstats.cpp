@@ -105,13 +105,16 @@ Worker::Worker(State * state) : state(state) {}
 Worker::Worker(const Worker & other) : state(other.state) {}
 
 void Worker::operator()() {
+	std::size_t size = state->items.size();
 	while (true) {
-		std::size_t p = state->pos.fetch_add(1, std::memory_order_relaxed);
+		std::size_t p = state->pos.fetch_add(BlockSize, std::memory_order_relaxed);
 		if (p >= state->items.size()) {
 			break;
 		}
-		uint32_t itemId = state->items.at(p);
-		d.update( state->store.kvBaseItem(itemId) );
+		for(std::size_t i(0); i < BlockSize && p < size; ++i, ++p) {
+			uint32_t itemId = state->items.at(p);
+			d.update( state->store.kvBaseItem(itemId) );
+		}
 	}
 	flush();
 }

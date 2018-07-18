@@ -87,6 +87,7 @@ struct State {
 };
 
 struct Worker {
+	static constexpr std::size_t BlockSize = 1000;
 	Data d;
 	State * state;
 	Worker(State * state);
@@ -116,7 +117,7 @@ public:
 	KeyInfoIterator keysEnd();
 	KeyInfoConstIterator keysEnd() const;
 public:
-	///return topk keys
+	///return topk keyIds sorting accroding to compare
 	template<typename TCompare>
 	std::vector<uint32_t> topk(uint32_t k, TCompare compare) const;
 private:
