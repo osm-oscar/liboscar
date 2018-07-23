@@ -202,6 +202,9 @@ KVStats::Stats KVStats::stats(const sserialize::ItemIndex & items, uint32_t thre
 		return stats( sserialize::ItemIndex( items.toVector() ), threadCount);
 	}
 	
+	///we can process about 1k items per ms per thread, starting a thread costs less than 1 ms
+	threadCount = std::min<uint32_t>(threadCount, std::max<uint32_t>(1, items.size()/1000));
+	
 	detail::KVStats::State state(m_store, items);
 	
 	sserialize::ThreadPool::execute(detail::KVStats::Worker(&state), threadCount, sserialize::ThreadPool::CopyTaskTag());
