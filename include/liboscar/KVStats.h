@@ -87,7 +87,10 @@ struct State {
 };
 
 struct Worker {
+	//number of items to fetch at once
 	static constexpr std::size_t BlockSize = 1000;
+	//number of queued key-value pairs before flushing
+	static constexpr std::size_t FlushSize = BlockSize * 1000;
 	Data d;
 	State * state;
 	Worker(State * state);

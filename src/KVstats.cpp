@@ -115,6 +115,9 @@ void Worker::operator()() {
 			uint32_t itemId = state->items.at(p);
 			d.update( state->store.kvBaseItem(itemId) );
 		}
+		if (d.keyValueCount.size() > FlushSize) {
+			flush();
+		}
 	}
 	flush();
 }
