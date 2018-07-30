@@ -230,7 +230,8 @@ template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegionExclusiveCells(AdvancedCellOpTree::Node * node) {
 	uint32_t storeId = atoi(node->value.c_str());
-	return m_ctc.regionExclusiveCells<CQRType>(storeId);
+	uint32_t ghId = m_ctc.geoHierarchy().storeIdToGhId(storeId);
+	return CQRType(m_ghsg.regionExclusiveCells(ghId), gh(), idxStore(), m_ctc.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS);
 }
 
 template<typename T_CQR_TYPE>
