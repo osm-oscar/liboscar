@@ -13,6 +13,7 @@
 #include <sserialize/search/GeoCompleter.h>
 #include <sserialize/spatial/GeoConstraintSetOpTreeEF.h>
 #include <sserialize/Static/GeoHierarchySubGraph.h>
+#include <sserialize/Static/CQRDilator.h>
 
 namespace liboscar {
 namespace Static {
@@ -40,6 +41,7 @@ private:
 	uint8_t m_selectedGeoCompleter;
 	sserialize::spatial::GeoHierarchySubGraph m_ghsg;
 	std::shared_ptr<sserialize::spatial::interface::CellDistance> m_cellDistance;
+	sserialize::Static::CQRDilator m_cqrd;
 	
 private:
 	sserialize::RCPtrWrapper<TagCompleter> m_tagCompleter;
@@ -77,10 +79,12 @@ public:
 	inline const sserialize::Static::ItemIndexStore & indexStore() const { return m_indexStore; }
 	inline const sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter> & geoCompleter() const { return m_geoCompleters.at(m_selectedGeoCompleter); }
 	inline sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter> & geoCompleter() { return m_geoCompleters.at(m_selectedGeoCompleter); }
+	inline const sserialize::Static::CQRDilator & cqrd() const { return m_cqrd; }
 	
 	bool setTextSearcher(TextSearch::Type t, uint8_t pos);
 	bool setGeoCompleter(uint8_t pos);
 	bool setCellDistance(CellDistanceType cdt, uint32_t threadCount);
+	bool setCQRDilatorCache(uint32_t threshold, uint32_t threadCount);
 	
 	inline uint8_t selectedGeoCompleter() { return m_selectedGeoCompleter; }
 	inline uint8_t selectedTextSearcher(TextSearch::Type t) { return m_textSearch.selectedTextSearcher(t); }

@@ -96,6 +96,20 @@ bool OsmCompleter::setCellDistance(CellDistanceType cdt, uint32_t threadCount) {
 	default:
 		return false;
 	};
+	
+	m_cqrd = sserialize::Static::CQRDilator(m_cellDistance, store().cellGraph());
+}
+
+bool OsmCompleter::setCQRDilatorCache(uint32_t threshold, uint32_t threadCount) {
+	if (!threshold) {
+		m_cqrd = sserialize::Static::CQRDilator(m_cellDistance, store().cellGraph());
+	}
+	else {
+		auto cqrdp = new sserialize::Static::detail::CQRDilatorWithCache(m_cellDistance, store().cellGraph());
+		cqrdp->populateCache(threshold, threadCount);
+		m_cqrd = sserialize::Static::CQRDilator( sserialize::RCPtrWrapper<sserialize::Static::detail::CQRDilator>(cqrdp) );
+	}
+	return true;
 }
 
 bool OsmCompleter::setTextSearcher(TextSearch::Type t, uint8_t pos) {
@@ -329,16 +343,15 @@ OsmCompleter::cqrComplete(
 		throw sserialize::UnsupportedFeatureException("OsmCompleter::cqrComplete data has no CellTextCompleter");
 	}
 	sserialize::Static::CellTextCompleter cmp( m_textSearch.get<liboscar::TextSearch::Type::GEOCELL>() );
-	sserialize::Static::CQRDilator cqrd(m_cellDistance, store().cellGraph());
 	CQRFromPolygon cqrfp(store(), indexStore());
 	CQRFromComplexSpatialQuery csq(ghsg, cqrfp);
 	if (!treedCQR) {
-		AdvancedCellOpTree opTree(cmp, cqrd, csq, ghsg);
+		AdvancedCellOpTree opTree(cmp, cqrd(), csq, ghsg);
 		opTree.parse(query);
 		return opTree.calc<sserialize::CellQueryResult>();
 	}
 	else {
-		AdvancedCellOpTree opTree(cmp, cqrd, csq, ghsg);
+		AdvancedCellOpTree opTree(cmp, cqrd(), csq, ghsg);
 		opTree.parse(query);
 		return opTree.calc<sserialize::TreedCellQueryResult>(threadCount).toCQR(threadCount);
 	}
