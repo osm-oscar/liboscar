@@ -67,40 +67,41 @@ bool OsmCompleter::setGeoCompleter(uint8_t pos) {
 	return false;
 }
 
-bool OsmCompleter::setCellDistance(CellDistanceType cdt, uint32_t threadCount) {
+void OsmCompleter::setCellDistance(CellDistanceType cdt, uint32_t threadCount) {
 	switch(cdt) {
 	case CDT_CENTER_OF_MASS:
 		m_cellDistance.reset(new sserialize::Static::spatial::CellDistanceByCellCenter( m_store.cellCenterOfMass() ));
-		return true;
+		break;
 	case CDT_ANULUS:
 		m_cellDistance.reset(
 			new liboscar::CellDistanceByAnulus(
 				liboscar::CellDistanceByAnulus::cellInfo(m_store.regionArrangement(), threadCount)
 			)
 		);
-		return true;
+		break;
 	case CDT_MIN_SPHERE:
 		m_cellDistance.reset(
 			new liboscar::CellDistanceBySphere(
 				liboscar::CellDistanceBySphere::minSpheres(m_store.regionArrangement(), threadCount)
 			)
 		);
-		return true;
+		break;
 	case CDT_SPHERE:
 		m_cellDistance.reset(
 			new liboscar::CellDistanceBySphere(
 				liboscar::CellDistanceBySphere::spheres(m_store.regionArrangement(), threadCount)
 			)
 		);
-		return true;
+		break;
 	default:
-		return false;
+		throw sserialize::InvalidEnumValueException("CellDistanceType does not contain value: " + std::to_string(int(cdt)));
+		break;
 	};
 	
 	m_cqrd = sserialize::Static::CQRDilator(m_cellDistance, store().cellGraph());
 }
 
-bool OsmCompleter::setCQRDilatorCache(uint32_t threshold, uint32_t threadCount) {
+void OsmCompleter::setCQRDilatorCache(uint32_t threshold, uint32_t threadCount) {
 	if (!threshold) {
 		m_cqrd = sserialize::Static::CQRDilator(m_cellDistance, store().cellGraph());
 	}
@@ -109,7 +110,6 @@ bool OsmCompleter::setCQRDilatorCache(uint32_t threshold, uint32_t threadCount) 
 		cqrdp->populateCache(threshold, threadCount);
 		m_cqrd = sserialize::Static::CQRDilator( sserialize::RCPtrWrapper<sserialize::Static::detail::CQRDilator>(cqrdp) );
 	}
-	return true;
 }
 
 bool OsmCompleter::setTextSearcher(TextSearch::Type t, uint8_t pos) {
