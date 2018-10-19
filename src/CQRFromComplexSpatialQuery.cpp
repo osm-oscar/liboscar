@@ -542,15 +542,15 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 		std::vector<sserialize::spatial::GeoPoint> pp;
 		if (st1 == sserialize::spatial::GS_POINT && st2 == sserialize::spatial::GS_POINT) { //point-point
 			createPolygon(
-				*shape1.get<sserialize::Static::spatial::GeoPoint>(),
-				*shape2.get<sserialize::Static::spatial::GeoPoint>(),
+				*shape1.get<sserialize::spatial::GS_POINT>(),
+				*shape2.get<sserialize::spatial::GS_POINT>(),
 				pp
 			);
 		}
 		else if (st1 == sserialize::spatial::GS_WAY && st2 == sserialize::spatial::GS_WAY) { //way-way
 			createPolygon(
-				*shape1.get<sserialize::Static::spatial::GeoWay>(),
-				*shape2.get<sserialize::Static::spatial::GeoWay>(),
+				*shape1.get<sserialize::spatial::GS_WAY>(),
+				*shape2.get<sserialize::spatial::GS_WAY>(),
 				pp
 			);
 		}
@@ -565,42 +565,42 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 		}
 		else if (st1 == sserialize::spatial::GS_POINT && st2 == sserialize::spatial::GS_WAY) { //point-way
 			createPolygon(
-				*shape2.get<sserialize::Static::spatial::GeoWay>(),
-				*shape1.get<sserialize::Static::spatial::GeoPoint>(),
+				*shape2.get<sserialize::spatial::GS_WAY>(),
+				*shape1.get<sserialize::spatial::GS_POINT>(),
 				pp
 			);
 		}
 		else if (st1 == sserialize::spatial::GS_WAY && st2 == sserialize::spatial::GS_POINT) { //way-point
 			createPolygon(
-				*shape1.get<sserialize::Static::spatial::GeoWay>(),
-				*shape2.get<sserialize::Static::spatial::GeoPoint>(),
+				*shape1.get<sserialize::spatial::GS_WAY>(),
+				*shape2.get<sserialize::spatial::GS_POINT>(),
 				pp
 			);
 		}
 		else if (st1 == sserialize::spatial::GS_POINT && (st2 == sserialize::spatial::GS_POLYGON || st2 == sserialize::spatial::GS_MULTI_POLYGON)) { //point-poly
 			createPolygon(
 				shape2.boundary(),
-				*shape1.get<sserialize::Static::spatial::GeoPoint>(),
+				*shape1.get<sserialize::spatial::GS_POINT>(),
 				pp
 			);
 		}
 		else if ((st1 == sserialize::spatial::GS_POLYGON || st1 == sserialize::spatial::GS_MULTI_POLYGON) && st2 == sserialize::spatial::GS_POINT) {
 			createPolygon(
 				shape1.boundary(),
-				*shape2.get<sserialize::Static::spatial::GeoPoint>(),
+				*shape2.get<sserialize::spatial::GS_POINT>(),
 				pp);
 		}
 		else if (st1 == sserialize::spatial::GS_WAY && (st2 == sserialize::spatial::GS_POLYGON || st2 == sserialize::spatial::GS_MULTI_POLYGON)) {
 			createPolygon(
 				shape2.boundary(),
-				*shape1.get<sserialize::Static::spatial::GeoWay>(),
+				*shape1.get<sserialize::spatial::GS_WAY>(),
 				pp
 			);
 		}
 		else if ((st1 == sserialize::spatial::GS_POLYGON || st1 == sserialize::spatial::GS_MULTI_POLYGON) && st2 == sserialize::spatial::GS_WAY) {
 			createPolygon(
 				shape1.boundary(),
-				*shape2.get<sserialize::Static::spatial::GeoWay>(),
+				*shape2.get<sserialize::spatial::GS_WAY>(),
 				pp
 			);
 		}
@@ -665,10 +665,10 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 		switch (st) {
 		case sserialize::spatial::GS_POINT:
 			//BUG: the size of the area should depend on the item type
-			createPolygon(*shape.get<sserialize::spatial::GeoPoint>(), 200.0, direction, pp);
+			createPolygon(*shape.get<sserialize::spatial::GS_POINT>(), 200.0, direction, pp);
 			break;
 		case sserialize::spatial::GS_WAY:
-			createPolygon(*shape.get<sserialize::Static::spatial::GeoWay>(), direction, pp);
+			createPolygon(*shape.get<sserialize::spatial::GS_WAY>(), direction, pp);
 			break;
 		case sserialize::spatial::GS_POLYGON:
 		case sserialize::spatial::GS_MULTI_POLYGON:

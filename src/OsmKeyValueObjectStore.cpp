@@ -533,11 +533,11 @@ std::ostream & OsmKeyValueObjectStorePrivate::printStats(std::ostream & out) con
 					++tmp2;
 					break;
 				case sserialize::spatial::GS_WAY:
-					tmp += gs.get<sserialize::Static::spatial::GeoWay>()->size();
+					tmp += gs.get<sserialize::spatial::GS_WAY>()->size();
 					break;
 				case sserialize::spatial::GS_MULTI_POLYGON:
 				{
-					auto gmp = gs.get<sserialize::Static::spatial::GeoMultiPolygon>();
+					auto gmp = gs.get<sserialize::spatial::GS_MULTI_POLYGON>();
 					for(uint32_t j(0), js((uint32_t) gmp->outerPolygons().size()); j < js; ++j) {
 						tmp += gmp->outerPolygons().at(j).size();
 					}

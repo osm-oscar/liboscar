@@ -87,7 +87,7 @@ void CQRFromPolygon::visit(const sserialize::spatial::GeoPolygon& gp, const sser
 			if (rect.overlap(gh.regionBoundary(childId))) {
 				uint32_t childStoreId = gh.ghIdToStoreId(childId);
 				sserialize::Static::spatial::GeoShape gs(m_store.geoShape(childStoreId));
-				if(gs.get<sserialize::spatial::GeoRegion>()->intersects(sgp)) {
+				if(gs.get<sserialize::spatial::GS_REGION>()->intersects(sgp)) {
 					queue.push_back(childId);
 					visitedRegions.insert(childId);
 				}
@@ -100,10 +100,10 @@ void CQRFromPolygon::visit(const sserialize::spatial::GeoPolygon& gp, const sser
 			sserialize::Static::spatial::GeoShape gs(m_store.geoShape(r.storeId()));
 			bool enclosed = false;
 			if (gs.type() == sserialize::spatial::GS_POLYGON) {
-				enclosed = sgp.encloses(*(gs.get<sserialize::Static::spatial::GeoPolygon>()));
+				enclosed = sgp.encloses(*(gs.get<sserialize::spatial::GS_POLYGON>()));
 			}
 			else if (gs.type() == sserialize::spatial::GS_MULTI_POLYGON) {
-				enclosed = gs.get<sserialize::Static::spatial::GeoMultiPolygon>()->enclosed(sgp);
+				enclosed = gs.get<sserialize::spatial::GS_MULTI_POLYGON>()->enclosed(sgp);
 			}
 			if (enclosed) {
 				//checking the itemsCount of the region does only work if the hierarchy was created with a full region item index
@@ -120,7 +120,7 @@ void CQRFromPolygon::visit(const sserialize::spatial::GeoPolygon& gp, const sser
 					if (!visitedRegions.count(childId) && rect.overlap(gh.regionBoundary(childId))) {
 						uint32_t childStoreId = gh.ghIdToStoreId(childId);
 						sserialize::Static::spatial::GeoShape gs(m_store.geoShape(childStoreId));
-						if(gs.get<sserialize::spatial::GeoRegion>()->intersects(sgp)) {
+						if(gs.get<sserialize::spatial::GS_REGION>()->intersects(sgp)) {
 							queue.push_back(childId);
 							visitedRegions.insert(childId);
 						}
@@ -218,13 +218,13 @@ struct PolyCellItemIntersectOp: public PolyCellItemIntersectBaseOp<PolyCellItemI
 		sserialize::Static::spatial::GeoShape gs( store.geoShape(itemId) );
 		switch(gs.type()) {
 		case sserialize::spatial::GS_POINT:
-			return sgp.contains(*gs.get<sserialize::Static::spatial::GeoPoint>());
+			return sgp.contains(*gs.get<sserialize::spatial::GS_POINT>());
 		case sserialize::spatial::GS_WAY:
-			return sgp.intersects(*gs.get<sserialize::Static::spatial::GeoWay>());
+			return sgp.intersects(*gs.get<sserialize::spatial::GS_WAY>());
 		case sserialize::spatial::GS_POLYGON:
-			return sgp.intersects(*gs.get<sserialize::Static::spatial::GeoPolygon>());
+			return sgp.intersects(*gs.get<sserialize::spatial::GS_POLYGON>());
 		case sserialize::spatial::GS_MULTI_POLYGON:
-			return gs.get<sserialize::Static::spatial::GeoMultiPolygon>()->intersects(sgp);
+			return gs.get<sserialize::spatial::GS_MULTI_POLYGON>()->intersects(sgp);
 		default:
 			return false;
 		};

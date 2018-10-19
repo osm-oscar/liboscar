@@ -135,10 +135,10 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 			sserialize::spatial::GeoShapeType gst = m_store.geoShapeType(itemId);
 			bool contained = false;
 			if (gst == sserialize::spatial::GS_POLYGON) {
-				contained = m_store.geoShape(itemId).get<sserialize::Static::spatial::GeoPolygon>()->contains(gp);
+				contained = m_store.geoShape(itemId).get<sserialize::spatial::GS_POLYGON>()->contains(gp);
 			}
 			else if (gst == sserialize::spatial::GS_MULTI_POLYGON) {
-				contained = m_store.geoShape(itemId).get<sserialize::Static::spatial::GeoMultiPolygon>()->contains(gp);
+				contained = m_store.geoShape(itemId).get<sserialize::spatial::GS_MULTI_POLYGON>()->contains(gp);
 			}
 			if (contained) {
 				tmp.emplace_back(itemId);
