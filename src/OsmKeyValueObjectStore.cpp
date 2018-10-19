@@ -537,7 +537,7 @@ std::ostream & OsmKeyValueObjectStorePrivate::printStats(std::ostream & out) con
 					break;
 				case sserialize::spatial::GS_MULTI_POLYGON:
 				{
-					const sserialize::Static::spatial::GeoMultiPolygon * gmp = gs.get<sserialize::Static::spatial::GeoMultiPolygon>();
+					auto gmp = gs.get<sserialize::Static::spatial::GeoMultiPolygon>();
 					for(uint32_t j(0), js((uint32_t) gmp->outerPolygons().size()); j < js; ++j) {
 						tmp += gmp->outerPolygons().at(j).size();
 					}
