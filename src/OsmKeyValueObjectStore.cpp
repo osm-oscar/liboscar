@@ -531,7 +531,6 @@ std::ostream & OsmKeyValueObjectStorePrivate::printStats(std::ostream & out) con
 					break;
 				case sserialize::spatial::GS_POLYGON:
 					++tmp2;
-					break;
 				case sserialize::spatial::GS_WAY:
 					tmp += gs.get<sserialize::spatial::GS_WAY>()->size();
 					break;
