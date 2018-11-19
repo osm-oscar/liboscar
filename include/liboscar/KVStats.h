@@ -99,10 +99,39 @@ struct Worker {
 	void flush();
 };
 
+class KeyValueInfo {
+public:
+	KeyValueInfo() = default;
+	KeyValueInfo(const KeyValueInfo & other) = default;
+	KeyValueInfo(const KeyInfo & ki) :
+	keyId(ki.keyId),
+	keyCount(ki.count),
+	valueCount(ki.count)
+	{}
+	KeyValueInfo(const KeyInfo & ki, const ValueInfo & vi) :
+	keyId(ki.keyId),
+	valueId(vi.valueId),
+	keyCount(ki.count),
+	valueCount(vi.count)
+	{}
+public:
+	inline bool isKeyOnly() const { return valueId == std::numeric_limits<uint32_t>::max(); }
+public:
+	uint32_t keyId{std::numeric_limits<uint32_t>::max()};
+	uint32_t valueId{std::numeric_limits<uint32_t>::max()};
+	uint32_t keyCount{0};
+	uint32_t valueCount{0};
+};
+
+struct DefaultKeyFilter {
+	inline bool operator()(const KeyInfo&) const {return true; }
+};
+
 class Stats {
 public:
 	using ValueInfo = liboscar::detail::KVStats::ValueInfo;
 	using KeyInfo = liboscar::detail::KVStats::KeyInfo;
+	using KeyValueInfo = liboscar::detail::KVStats::KeyValueInfo;
 	using KeyInfoIterator = std::vector<KeyInfo>::iterator;
 	using KeyInfoConstIterator = std::vector<KeyInfo>::const_iterator;
 public:
@@ -120,9 +149,15 @@ public:
 	KeyInfoIterator keysEnd();
 	KeyInfoConstIterator keysEnd() const;
 public:
-	///return topk keyIds sorting accroding to compare
+	///return topk keyIds sorted according to compare
+	///@param compare(ValueInfo, ValueInfo)
 	template<typename TCompare>
 	std::vector<uint32_t> topk(uint32_t k, TCompare compare) const;
+	///return topk key:value pairs, sorted according to compare
+	///@param compare(KeyValueInfo, KeyValueInfo)
+	///@param keyFilter(KeyInfo) -> bool; true iff we should analze key-value pairs with the given key
+	template<typename TCompare, typename TKeyFilter = DefaultKeyFilter>
+	std::vector<KeyValueInfo> topkv(uint32_t k, TCompare compare, TKeyFilter keyFilter = TKeyFilter()) const;
 private:
 	std::unique_ptr<std::vector<ValueInfo>> m_valueInfoStore;
 	std::vector<KeyInfo> m_keyInfoStore;
@@ -136,6 +171,7 @@ class KVStats final {
 public:
 	using ValueInfo = detail::KVStats::ValueInfo;
 	using KeyInfo = detail::KVStats::KeyInfo;
+	using KeyValueInfo = detail::KVStats::KeyValueInfo;
 	using Stats = detail::KVStats::Stats;
 public:
 	KVStats(const Static::OsmKeyValueObjectStore & other);
@@ -222,6 +258,58 @@ detail::KVStats::Stats::topk(uint32_t k, TCompare compare) const {
 	}
 	SSERIALIZE_CHEAP_ASSERT_EQUAL(std::size_t(0), pq.size());
 	pos2id(result);
+	return result;
+}
+
+
+template<typename TCompare, typename TKeyFilter>
+std::vector<detail::KVStats::Stats::KeyValueInfo>
+detail::KVStats::Stats::topkv(uint32_t k, TCompare compare, TKeyFilter keyFilter) const {
+	auto mycompare = [this, &compare](const KeyValueInfo & a, const KeyValueInfo & b) -> bool {
+		return ! compare(a, b);
+	};
+	std::priority_queue<KeyValueInfo, std::vector<KeyValueInfo>, decltype(mycompare)> pq(mycompare);
+	//add k items to pq
+	uint32_t i(0);
+	uint32_t j(0);
+	for(uint32_t s(keys().size()); i < s && pq.size() < k; ++i) {
+		const KeyInfo & ki = m_keyInfoStore[i];
+		if (!keyFilter(ki)) {
+			continue;
+		}
+		
+		uint32_t sj(ki.values.size());
+		for(; j < sj && pq.size() < k; ++j) {
+			pq.emplace(ki, ki.values[j]);
+		}
+		if (j < ki.values.size()) { //more to come below
+			break;
+		}
+		else {
+			j = 0;
+		}
+	}
+	//now add one and remove one
+	for(uint32_t s(keys().size()); i < s; ++i) {
+		const KeyInfo & ki = m_keyInfoStore[i];
+		if (!keyFilter(ki)) {
+			continue;
+		}
+		
+		for(uint32_t sj(ki.values.size()); j < sj; ++j) {
+			pq.emplace(ki, ki.values[j]);
+			pq.pop();
+		}
+		j = 0;
+	}
+	//and retrieve them all, they are sorted from small to large, so inverse the mapping
+	std::vector<KeyValueInfo> result(pq.size());
+	for(auto rit(result.rbegin()), rend(result.rend()); rit != rend; ++rit) {
+		*rit = pq.top();
+		pq.pop();
+	}
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(std::size_t(0), pq.size());
+	SSERIALIZE_NORMAL_ASSERT( std::is_sorted(result.begin(), result.end(), mycompare) );
 	return result;
 }
 
