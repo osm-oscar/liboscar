@@ -240,10 +240,21 @@ public:
 	}
 public:
 	virtual void exclude(const KeyExclusions & e) override {
-		m_ke = std::make_unique<KeyExclusions>(e);
+		if (m_ke) {
+			m_ke->add(e);
+			m_ke->preprocess();
+		}
+		else {
+			m_ke = std::make_unique<KeyExclusions>(e);
+		}
 	}
 	virtual void exclude(const KeyValueExclusions & e) override {
-		m_kve = std::make_unique<KeyValueExclusions>(e);
+		if (m_kve) {
+			m_kve->add(e);
+		}
+		else {
+			m_kve = std::make_unique<KeyValueExclusions>(e);
+		}
 	}
 	virtual void preprocess() override {}
 protected:

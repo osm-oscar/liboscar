@@ -62,6 +62,14 @@ KeyExclusions::addPrefix(uint32_t keyIdBegin, uint32_t keyIdEnd) {
 }
 
 
+void 
+KeyExclusions::add(const KeyExclusions & other) {
+	if (other.m_keyRange.size()) {
+		m_keyRange.insert(m_keyRange.end(), other.m_keyRange.begin(), other.m_keyRange.end());
+		m_valid = false;
+	}
+}
+
 KeyExclusions KeyExclusions::operator+(const KeyExclusions & other) const {
 	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_kst.size(), other.m_kst.size());
 	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_kst.getSizeInBytes(), other.m_kst.getSizeInBytes());
@@ -152,6 +160,11 @@ KeyValueExclusions::add(uint32_t keyId, uint32_t valueId) {
 	m_keyValues.emplace(keyId, valueId);
 }
 
+
+void
+KeyValueExclusions::add(const KeyValueExclusions & other) {
+	m_keyValues.insert(other.m_keyValues.begin(), other.m_keyValues.end());
+}
 
 KeyValueExclusions KeyValueExclusions::operator+(const KeyValueExclusions & other) const {
 	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_kst.size(), other.m_kst.size());

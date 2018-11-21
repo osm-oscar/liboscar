@@ -21,6 +21,7 @@ public:
 	KeyExclusions(KeyExclusions &&) = default;
 	~KeyExclusions();
 public:
+	void add(const KeyExclusions & other);
 	void add(const std::string & key);
 	void add(uint32_t keyId);
 	void addPrefix(const std::string & keyprefix);
@@ -60,6 +61,7 @@ public:
 	~KeyValueExclusions();
 	void add(const std::string & key, const std::string & value);
 	void add(uint32_t keyId, uint32_t valueId);
+	void add(const KeyValueExclusions & other);
 public:
 	KeyValueExclusions operator+(const KeyValueExclusions & other) const;
 public:
