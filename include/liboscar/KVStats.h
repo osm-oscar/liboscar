@@ -188,7 +188,7 @@ public:
 public:
 	virtual std::vector<liboscar::kvclustering::KeyInfo> topKeys(uint32_t k) override {
 		std::vector<uint32_t> tmp;
-		if (m_ke->hasExceptions()) {
+		if (m_ke && m_ke->hasExceptions()) {
 			tmp = m_stats.topk(k, m_kc, [this](const KeyInfo & ki) {
 				return this->m_ke->contains(ki.keyId);
 			});
@@ -205,11 +205,11 @@ public:
 	}
 	virtual std::vector<liboscar::kvclustering::KeyValueInfo> topKeyValues(uint32_t k) override {
 		std::vector<KeyValueInfo> tmp;
-		if (m_ke->hasExceptions()) {
+		if (m_ke && m_ke->hasExceptions()) {
 			auto mke = [this](const KeyInfo & ki) {
 				return this->m_ke->contains(ki.keyId);
 			};
-			if (m_kve->hasExceptions()) {
+			if (m_kve && m_kve->hasExceptions()) {
 				auto mkve = [this](const KeyInfo & ki, const ValueInfo & vi) {
 					return this->m_kve->contains(ki.keyId, vi.valueId);
 				};
@@ -219,7 +219,7 @@ public:
 				tmp = m_stats.topkv(k, m_kvc, mke);
 			}
 		}
-		else if (m_kve->hasExceptions()) {
+		else if (m_kve && m_kve->hasExceptions()) {
 			auto mkve = [this](const KeyInfo & ki, const ValueInfo & vi) {
 				return this->m_kve->contains(ki.keyId, vi.valueId);
 			};
@@ -335,9 +335,11 @@ public:
 	using MyBase::apply;
 protected:
 public: //actually protected, but make_shared/make_unique need this to be public
-	ShannonClustering(Stats && stats, uint32_t keySplitThreshold, uint32_t keyValueSplitThreshold) :
+	explicit ShannonClustering(Stats && stats, uint32_t keySplitThreshold, uint32_t keyValueSplitThreshold) :
 	MyBase(std::move(stats), KeyCompare(keySplitThreshold), KeyValueCompare(keyValueSplitThreshold))
 	{}
+	ShannonClustering() = delete;
+	ShannonClustering(const ShannonClustering&) = delete;
 };
 	
 }//end namespace kvclustering
@@ -360,7 +362,7 @@ private:
 	Static::OsmKeyValueObjectStore m_store;
 };
 
-}//end namespace
+}//end namespace livoscar
 
 //Implementation
 
