@@ -17,12 +17,16 @@ public:
 	using KeyStringTable = sserialize::Static::SortedStringTable;
 public:
 	KeyExclusions(const KeyStringTable & kst);
+	KeyExclusions(const KeyExclusions &) = default;
+	KeyExclusions(KeyExclusions &&) = default;
 	~KeyExclusions();
 public:
 	void add(const std::string & key);
 	void add(uint32_t keyId);
 	void addPrefix(const std::string & keyprefix);
 	void addPrefix(uint32_t keyIdBegin, uint32_t keyIdEnd);
+public:
+	KeyExclusions operator+(const KeyExclusions & other) const;
 public:
 	///create search data structures
 	void preprocess();
@@ -51,9 +55,13 @@ public:
 	using ValueStringTable = sserialize::Static::SortedStringTable;
 public:
 	KeyValueExclusions(const KeyStringTable & kst, const ValueStringTable & vst);
+	KeyValueExclusions(const KeyValueExclusions&) = default;
+	KeyValueExclusions(KeyValueExclusions&&) = default;
 	~KeyValueExclusions();
 	void add(const std::string & key, const std::string & value);
 	void add(uint32_t keyId, uint32_t valueId);
+public:
+	KeyValueExclusions operator+(const KeyValueExclusions & other) const;
 public:
 	bool hasExceptions() const;
 	bool contains(uint32_t keyId, uint32_t valueId) const;
@@ -129,12 +137,16 @@ public:
 	make_unique(TArgs... args) { return std::make_unique<TSubClass>(std::forward<TArgs>(args)...); }
 public:
 	virtual ~Interface() {}
+public: //exclusion interface
+	virtual void exclude(const KeyExclusions & e) = 0;
+	virtual void exclude(const KeyValueExclusions & e) = 0;
+public:
+	///do the necessary pre-processing to call topKeys and topKeyValues
+	///May also pre-process the excludes
+	virtual void preprocess() = 0;
 public:
 	virtual std::vector<KeyInfo> topKeys(uint32_t k) = 0;
 	virtual std::vector<KeyValueInfo> topKeyValues(uint32_t k) = 0;
-public:
-	virtual void apply(const std::shared_ptr<KeyExclusions> & e) = 0;
-	virtual void apply(const std::shared_ptr<KeyValueExclusions> & e) = 0;
 protected:
 	Interface() {}
 };

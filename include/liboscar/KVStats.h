@@ -239,24 +239,27 @@ public:
 		return result;
 	}
 public:
-	virtual void apply(const std::shared_ptr<KeyExclusions> & e) override {
-		m_ke = e;
+	virtual void exclude(const KeyExclusions & e) override {
+		m_ke = std::make_unique<KeyExclusions>(e);
 	}
-	virtual void apply(const std::shared_ptr<KeyValueExclusions> & e) override {
-		m_kve = e;
+	virtual void exclude(const KeyValueExclusions & e) override {
+		m_kve = std::make_unique<KeyValueExclusions>(e);
 	}
+	virtual void preprocess() override {}
 protected:
 	KVClusteringBase(Stats && stats, KeyCompare kc = KeyCompare(), KeyValueCompare kvc = KeyValueCompare()) :
 	m_stats(std::move(stats)),
 	m_kc(kc),
 	m_kvc(kvc)
 	{}
+	KVClusteringBase() = delete;
+	KVClusteringBase(const KVClusteringBase &) = delete;
 private:
 	Stats m_stats;
 	KeyCompare m_kc;
 	KeyValueCompare m_kvc;
-	std::shared_ptr<KeyExclusions> m_ke;
-	std::shared_ptr<KeyValueExclusions> m_kve;
+	std::unique_ptr<KeyExclusions> m_ke;
+	std::unique_ptr<KeyValueExclusions> m_kve;
 };
 
 }} //end namespace detail::KVStats
@@ -332,7 +335,8 @@ public:
 public:
 	using MyBase::topKeys;
 	using MyBase::topKeyValues;
-	using MyBase::apply;
+	using MyBase::exclude;
+	using MyBase::preprocess;
 protected:
 public: //actually protected, but make_shared/make_unique need this to be public
 	explicit ShannonClustering(Stats && stats, uint32_t keySplitThreshold, uint32_t keyValueSplitThreshold) :

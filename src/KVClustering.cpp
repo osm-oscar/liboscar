@@ -61,6 +61,20 @@ KeyExclusions::addPrefix(uint32_t keyIdBegin, uint32_t keyIdEnd) {
 	m_valid = false;
 }
 
+
+KeyExclusions KeyExclusions::operator+(const KeyExclusions & other) const {
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_kst.size(), other.m_kst.size());
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_kst.getSizeInBytes(), other.m_kst.getSizeInBytes());
+	
+	KeyExclusions result(m_kst);
+	result.m_keyRange.insert(result.m_keyRange.end(), m_keyRange.begin(), m_keyRange.end());
+	result.m_keyRange.insert(result.m_keyRange.end(), other.m_keyRange.begin(), other.m_keyRange.end());
+	if (m_valid || other.m_valid) {
+		result.preprocess();
+	}
+	return result;
+}
+
 void
 KeyExclusions::preprocess() {
 	if (!m_keyRange.size()) {
@@ -136,6 +150,19 @@ KeyValueExclusions::add(const std::string & key, const std::string & value) {
 void
 KeyValueExclusions::add(uint32_t keyId, uint32_t valueId) {
 	m_keyValues.emplace(keyId, valueId);
+}
+
+
+KeyValueExclusions KeyValueExclusions::operator+(const KeyValueExclusions & other) const {
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_kst.size(), other.m_kst.size());
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_kst.getSizeInBytes(), other.m_kst.getSizeInBytes());
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_vst.size(), other.m_vst.size());
+	SSERIALIZE_CHEAP_ASSERT_EQUAL(m_vst.getSizeInBytes(), other.m_vst.getSizeInBytes());
+	
+	KeyValueExclusions result(m_kst, m_vst);
+	result.m_keyValues = m_keyValues;
+	result.m_keyValues.insert(other.m_keyValues.begin(), other.m_keyValues.end());
+	return result;
 }
 
 bool
