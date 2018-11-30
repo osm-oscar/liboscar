@@ -53,6 +53,10 @@ const liboscar::Static::OsmKeyValueObjectStore& CQRFromComplexSpatialQuery::stor
 	return m_cqrfp.store();
 }
 
+const CQRFromComplexSpatialQuery::CellInfo & CQRFromComplexSpatialQuery::cellInfo() const {
+	return m_cqrfp.cellInfo();
+}
+
 const sserialize::Static::spatial::GeoHierarchy & CQRFromComplexSpatialQuery::geoHierarchy() const {
 	return m_cqrfp.geoHierarchy();
 }
@@ -639,7 +643,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::betweenOp(const sseriali
 		//now remove the cells that are part of the input regions
 		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(id1));
 		tmp = tmp - idxStore().at(geoHierarchy().regionCellIdxPtr(id2));
-		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore(), cqrFlags);
+		return sserialize::CellQueryResult(tmp, cellInfo(), idxStore(), cqrFlags);
 	}
 }
 
@@ -686,7 +690,7 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::compassOp(const sseriali
 		}
 		sserialize::ItemIndex tmp(m_cqrfp.fullMatches(sserialize::spatial::GeoPolygon(std::move(pp)), liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX, threadCount));
 		tmp = tmp - idxStore().at(m_cqrfp.geoHierarchy().regionCellIdxPtr(id));
-		return sserialize::CellQueryResult(tmp, geoHierarchy(), idxStore(), cqrFlags);
+		return sserialize::CellQueryResult(tmp, cellInfo(), idxStore(), cqrFlags);
 	}
 	else {
 		assert(false);
@@ -711,10 +715,10 @@ sserialize::CellQueryResult CQRFromComplexSpatialQuery::relevantElementOp(const 
 		using ItemIndex = sserialize::ItemIndex;
 		auto cells = store().cells(id);
 		std::vector<ItemIndex> pm(cells.size(), ItemIndex({id}));
-		return sserialize::CellQueryResult(ItemIndex(), ItemIndex(cells.begin(), cells.end()), pm.begin(), geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+		return sserialize::CellQueryResult(ItemIndex(), ItemIndex(cells.begin(), cells.end()), pm.begin(), cellInfo(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
 	}
 	else if (qit == QIT_REGION) {
-		return sserialize::CellQueryResult(idxStore().at( geoHierarchy().regionCellIdxPtr(id) ), geoHierarchy(), idxStore(), cqrFlags);
+		return sserialize::CellQueryResult(idxStore().at( geoHierarchy().regionCellIdxPtr(id) ), cellInfo(), idxStore(), cqrFlags);
 	}
 	else {
 		assert(false);

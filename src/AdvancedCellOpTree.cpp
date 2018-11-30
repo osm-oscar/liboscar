@@ -73,7 +73,7 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcRelevantElementOp(
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcInOp(Node *, const sserialize::CellQueryResult & cqr) {
 	return sserialize::CellQueryResult(
 		calcDilateRegionOp(0.9, cqr),
-		cqr.geoHierarchy(),
+		cqr.cellInfo(),
 		cqr.idxStore(),
 		cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
 	);
@@ -146,6 +146,10 @@ std::vector<double> AdvancedCellOpTree::CalcBase::asDoubles(const std::string & 
 	return tmp;
 }
 
+const sserialize::CellQueryResult::CellInfo & AdvancedCellOpTree::CalcBase::ci() const {
+	return m_ctc.cellInfo();
+}
+
 const sserialize::Static::spatial::GeoHierarchy& AdvancedCellOpTree::CalcBase::gh() const {
 	return m_ctc.geoHierarchy();
 }
@@ -182,7 +186,7 @@ AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcDilationOp(AdvancedCe
 	return cqr +
 		sserialize::CellQueryResult(
 									m_cqrd.dilate(cqr, diameter, m_threadCount),
-									cqr.geoHierarchy(),
+									cqr.cellInfo(),
 									cqr.idxStore(),
 									cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
 									);
@@ -196,7 +200,7 @@ AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcDilationOp(Advan
 	return cqr +
 		sserialize::TreedCellQueryResult(
 										m_cqrd.dilate(toCQR(cqr), diameter, m_threadCount),
-										cqr.geoHierarchy(),
+										cqr.cellInfo(),
 										cqr.idxStore(),
 										cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
 										);
@@ -209,7 +213,7 @@ AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationOp(Adva
 	sserialize::CellQueryResult cqr( calc(node->children.front()) );
 	return sserialize::CellQueryResult(
 										CalcBase::calcDilateRegionOp(node, cqr),
-										cqr.geoHierarchy(),
+										cqr.cellInfo(),
 										cqr.idxStore(),
 										cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
 									  );
@@ -221,7 +225,7 @@ AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRegionDilationOp
 	sserialize::TreedCellQueryResult cqr( calc(node->children.front()) );
 	return sserialize::TreedCellQueryResult(
 											CalcBase::calcDilateRegionOp(node, cqr.toCQR()),
-											cqr.geoHierarchy(),
+											cqr.cellInfo(),
 											cqr.idxStore(),
 											cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
 											);

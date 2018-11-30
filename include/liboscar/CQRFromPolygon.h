@@ -23,11 +23,15 @@ public:
 		ACT_POLYGON_BBOX_CELL_BBOX=std::numeric_limits<uint32_t>::max(),
 		ACT_USE_LENGTH_OVER_DIAGONAL_RATIO=20 //if the length of the polygon is more than 20 times longer than its diagonal, then use the length/20 as threshould value
 	};
+	
+	using CellInfo = sserialize::CellQueryResult::CellInfo;
+	
 public:
 	CQRFromPolygon(const CQRFromPolygon & other);
 	CQRFromPolygon(const Static::OsmKeyValueObjectStore & store, const sserialize::Static::ItemIndexStore & idxStore);
 	~CQRFromPolygon();
 	const Static::OsmKeyValueObjectStore & store() const;
+	const CellInfo & cellInfo() const;
 	const sserialize::Static::spatial::GeoHierarchy & geoHierarchy() const;
 	const sserialize::Static::ItemIndexStore & idxStore() const;
 	///returns only fm cells, only usefull with AC_POLYGON_BBOX_CELL and AC_POLYGON_CELL_BBOX
@@ -43,11 +47,13 @@ namespace detail {
 
 class CQRFromPolygon: public sserialize::RefCountObject {
 public:
-		using Accuracy = liboscar::CQRFromPolygon::Accuracy;
+	using Accuracy = liboscar::CQRFromPolygon::Accuracy;
+	using CellInfo = liboscar::CQRFromPolygon::CellInfo;
 public:
 	CQRFromPolygon(const Static::OsmKeyValueObjectStore & store, const sserialize::Static::ItemIndexStore & idxStore);
 	virtual ~CQRFromPolygon();
 	const Static::OsmKeyValueObjectStore & store() const;
+	const CellInfo & cellInfo() const;
 	const sserialize::Static::spatial::GeoHierarchy & geoHierarchy() const;
 	const sserialize::Static::ItemIndexStore & idxStore() const;
 	sserialize::ItemIndex fullMatches(const sserialize::spatial::GeoPolygon& gp, Accuracy ac, uint32_t threadCount) const;
@@ -63,6 +69,7 @@ private:
 private:
 	Static::OsmKeyValueObjectStore m_store;
 	sserialize::Static::ItemIndexStore m_idxStore;
+	CellInfo m_ci;
 };
 
 template<typename T_OPERATOR>
@@ -265,7 +272,7 @@ sserialize::CellQueryResult CQRFromPolygon::intersectingCellsPolygonItem(const s
 	
 	sserialize::ItemIndex fmIdx(std::move(fullMatchesSorted));
 	sserialize::ItemIndex pmIdx(std::move(partialMatchesSorted));
-	return sserialize::CellQueryResult(fmIdx, pmIdx, partialMatchesIdx.cbegin(), geoHierarchy(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+	return sserialize::CellQueryResult(fmIdx, pmIdx, partialMatchesIdx.cbegin(), cellInfo(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
 };
 
 }}//end namespace liboscar::detail

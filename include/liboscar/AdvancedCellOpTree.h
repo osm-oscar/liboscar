@@ -33,6 +33,7 @@ public:
 		uint32_t m_threadCount;
 		
 		const sserialize::Static::ItemIndexStore & idxStore() const;
+		const sserialize::CellQueryResult::CellInfo & ci() const;
 		const sserialize::Static::spatial::GeoHierarchy & gh() const;
 		const liboscar::Static::OsmKeyValueObjectStore & store() const;
 		const sserialize::spatial::GeoHierarchySubGraph & ghsg() const;
@@ -204,7 +205,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 		else {
 			auto tmp = m_ctc.cqrAlongPath<sserialize::CellQueryResult>(0.0, gp.begin(), gp.end());
 			if (radius > 0.0) {
-				return CQRType(m_cqrd.dilate(tmp, radius, m_threadCount), gh(), idxStore(), tmp.flags()) + CQRType(tmp);
+				return CQRType(m_cqrd.dilate(tmp, radius, m_threadCount), ci(), idxStore(), tmp.flags()) + CQRType(tmp);
 			}
 			else {
 				return CQRType(tmp);
@@ -231,7 +232,7 @@ T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRegionExclusiveCells(AdvancedCellOpTree::Node * node) {
 	uint32_t storeId = atoi(node->value.c_str());
 	uint32_t ghId = m_ctc.geoHierarchy().storeIdToGhId(storeId);
-	return CQRType(m_ghsg.regionExclusiveCells(ghId), gh(), idxStore(), m_ctc.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS);
+	return CQRType(m_ghsg.regionExclusiveCells(ghId), ci(), idxStore(), m_ctc.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS);
 }
 
 template<typename T_CQR_TYPE>
@@ -294,7 +295,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcItem(AdvancedCellOpTree::Node * node) 
 		pmIdx = sserialize::ItemIndex(std::vector<uint32_t>(itemCells.begin(), itemCells.end()));
 	}
 	std::vector<sserialize::ItemIndex> cellIdx(pmIdx.size(), idx);
-	return CQRType(sserialize::ItemIndex(), pmIdx, cellIdx.begin(), gh(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+	return CQRType(sserialize::ItemIndex(), pmIdx, cellIdx.begin(), ci(), idxStore(), sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
 }
 
 template<typename T_CQR_TYPE>
@@ -377,7 +378,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcQueryExclusiveCells(AdvancedCellOpTree
 		}
 	}
 	sserialize::ItemIndex idx(std::move(tmp));
-	return CQRType(idx, gh(), idxStore(), cqr.flags()) / cqr;
+	return CQRType(idx, ci(), idxStore(), cqr.flags()) / cqr;
 }
 
 template<typename T_CQR_TYPE>

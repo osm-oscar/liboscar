@@ -16,6 +16,11 @@ const Static::OsmKeyValueObjectStore& CQRFromPolygon::store() const {
 	return m_priv->store();
 }
 
+const CQRFromPolygon::CellInfo &
+CQRFromPolygon::cellInfo() const {
+	return m_priv->cellInfo();
+}
+
 const sserialize::Static::spatial::GeoHierarchy & CQRFromPolygon::geoHierarchy() const {
 	return m_priv->geoHierarchy();
 }
@@ -40,13 +45,18 @@ namespace detail {
 
 CQRFromPolygon::CQRFromPolygon(const Static::OsmKeyValueObjectStore& store, const sserialize::Static::ItemIndexStore & idxStore) :
 m_store(store),
-m_idxStore(idxStore)
+m_idxStore(idxStore),
+m_ci(sserialize::Static::spatial::GeoHierarchyCellInfo::makeRc(m_store.geoHierarchy()))
 {}
 
 CQRFromPolygon::~CQRFromPolygon() {}
 
 const Static::OsmKeyValueObjectStore& CQRFromPolygon::store() const {
 	return m_store;
+}
+
+const CQRFromPolygon::CellInfo & CQRFromPolygon::cellInfo() const {
+	return m_ci;
 }
 
 const sserialize::Static::spatial::GeoHierarchy& CQRFromPolygon::geoHierarchy() const {
@@ -103,10 +113,10 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 	}
 	switch (ac) {
 	case liboscar::CQRFromPolygon::AC_POLYGON_BBOX_CELL_BBOX:
-		return sserialize::CellQueryResult(geoHierarchy().intersectingCells(idxStore(), gp.boundary()), geoHierarchy(), idxStore(), cqrFlags);
+		return sserialize::CellQueryResult(geoHierarchy().intersectingCells(idxStore(), gp.boundary()), cellInfo(), idxStore(), cqrFlags);
 	case liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX:
 	case liboscar::CQRFromPolygon::AC_POLYGON_CELL:
-		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), geoHierarchy(), idxStore(), cqrFlags);
+		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), cellInfo(), idxStore(), cqrFlags);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX:
 		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemBBoxIntersectOp>(gp).convert(cqrFlags);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM:
@@ -149,7 +159,7 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 			sserialize::ItemIndex(),
 			sserialize::ItemIndex( std::vector<uint32_t>(1, cellId) ),
 			pmIdcs.begin(),
-			geoHierarchy(),
+			cellInfo(),
 			idxStore(),
 			sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS
 		);

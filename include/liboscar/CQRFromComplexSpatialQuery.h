@@ -32,6 +32,7 @@ namespace detail {
 class CQRFromComplexSpatialQuery: public sserialize::RefCountObject {
 public:
 	typedef sserialize::Static::spatial::GeoHierarchy::SubSet SubSet;
+	using CellInfo = sserialize::CellQueryResult::CellInfo;
 private:
 	enum QueryItemType : uint32_t { QIT_INVALID=0, QIT_ITEM=1, QIT_REGION=2};
 public:
@@ -71,6 +72,7 @@ private:
 	
 private: //accessor function
 	const liboscar::Static::OsmKeyValueObjectStore & store() const;
+	const CellInfo & cellInfo() const;
 	const sserialize::Static::spatial::GeoHierarchy & geoHierarchy() const;
 	const sserialize::Static::ItemIndexStore & idxStore() const;
 private:
