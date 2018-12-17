@@ -69,7 +69,7 @@ public:
 	sserialize::UByteArrayAdapter data(liboscar::FileConfig fc) const;
 	bool setAllFilesFromPrefix(const std::string & fileName);
 	///throws an exception if something goes wrong
-	void energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_INVALID);
+	void energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsgType = sserialize::spatial::GeoHierarchySubGraph::T_PASS_THROUGH);
 
 	inline const TextSearch & textSearch() const { return m_textSearch; }
 	inline const GeoSearch & geoSearch() const { return m_geoSearch; }
