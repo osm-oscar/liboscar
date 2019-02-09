@@ -64,6 +64,7 @@ set(LIBOSCAR_SOURCES_CPP
 	src/CellDistanceBySphere.cpp
 	src/KVstats.cpp
 	src/KVClustering.cpp
+	src/KoMaClustering.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC
