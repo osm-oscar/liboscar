@@ -6,40 +6,49 @@
 #include <vector>
 #include "OsmKeyValueObjectStore.h"
 #include "KVClustering.h"
+#include <sserialize/containers/OADHashTable.h>
 
 namespace liboscar {
 namespace detail {
 namespace KoMaClustering {
 struct Data {
 	using KeyValue = std::pair<uint32_t, uint32_t>;
-	using KeyValueItemMap = std::unordered_map<KeyValue, std::vector<uint32_t>>;
-	using KeyValueCountVec = std::vector<std::pair<KeyValue, uint32_t>>;
+	using KeyValueItemMap = sserialize::OADHashTable<KeyValue, std::vector<uint32_t>>;
 	KeyValueItemMap keyValueItemMap;
-	KeyValueCountVec keyValueCountVec;
-	KeyValueCountVec keyValueCountVecSortedByIds;
 	//const kvclustering::KeyExclusions &keyExclusions;
 	//const kvclustering::KeyValueExclusions &keyValueExclusions;
 	Data();
 	void update(const KeyValue &key, const uint32_t& itemId);
-	void sort();
 };
 
 struct State {
 	const Static::OsmKeyValueObjectStore &store;
-	const sserialize::CellQueryResult &cqr;
+	const sserialize::ItemIndex &items;
 	const kvclustering::KeyExclusions &keyExclusions;
 	const kvclustering::KeyValueExclusions &keyValueExclusions;
-	Data & d;
+	Data::KeyValueItemMap &keyValueItemMap;
+	std::vector<Data> d;
+	size_t numberOfThreads;
+	std::mutex m;
+	std::atomic<std::size_t> pos{0};
+	void merge();
 	State(const Static::OsmKeyValueObjectStore &store,
-		const sserialize::CellQueryResult &cqr,
+		const sserialize::ItemIndex &items,
 		const kvclustering::KeyExclusions &keyExclusions,
 		const kvclustering::KeyValueExclusions &keyValueExclusions,
-		Data & d);
+		Data::KeyValueItemMap &keyValueItemMap,
+		size_t numberOfThreads);
 };
 
 struct Worker {
+	//number of items to fetch at once
+	static constexpr std::size_t BlockSize = 1000;
+	//number of queued key-value pairs before flushing
+	static constexpr std::size_t FlushSize = BlockSize * 1000;
 	State * state;
+	Data d;
 	void operator()();
+	void flush();
 	Worker(State * state);
 };
 } // end namespace KoMaClustering
@@ -55,24 +64,31 @@ public:
 	using ValueCountPair = std::pair<uint32_t, uint32_t>;
 public:
 	KoMaClustering(const Static::OsmKeyValueObjectStore &store,
-			const sserialize::CellQueryResult &cqr,
+			sserialize::ItemIndex &items,
 			kvclustering::KeyExclusions &keyExclusions,
-			kvclustering::KeyValueExclusions &keyValueExclusions);
+			kvclustering::KeyValueExclusions &keyValueExclusions,
+			uint32_t threadCount);
 
 	~KoMaClustering() override = default;
 
 private:
 	const Static::OsmKeyValueObjectStore &store;
-	detail::KoMaClustering::Data m_data;
-	const sserialize::CellQueryResult &cqr;
+	const sserialize::ItemIndex &items;
 	kvclustering::KeyExclusions &keyExclusions;
 	kvclustering::KeyValueExclusions &keyValueExclusions;
+	using KeyValueCountVec = std::vector<std::pair<detail::KoMaClustering::Data::KeyValue, uint32_t>>;
+	detail::KoMaClustering::Data::KeyValueItemMap keyValueItemMap;
+	KeyValueCountVec keyValueCountVec;
+	KeyValueCountVec keyValueCountVecSortedByIds;
+	uint32_t threadCount;
+
+	void sort();
 public:
 	void preprocess() override;
 
-	std::vector<std::pair<uint32_t, std::list<std::pair<uint32_t, uint32_t>>>> facets(uint32_t k);
+	std::vector<std::pair<uint32_t, std::list<std::pair<uint32_t, uint32_t>>>> facets(uint32_t k, std::map<std::uint32_t, std::uint32_t> dynFacetSize, std::uint32_t defaultFacetSize);
 
-	std::list<ValueCountPair> findValuesToKey(std::uint32_t keyId);
+	std::list<ValueCountPair> findValuesToKey(std::uint32_t keyId, std::uint32_t facetSize);
 
 	void exclude(const kvclustering::KeyExclusions & e) override;
 
