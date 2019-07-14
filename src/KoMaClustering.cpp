@@ -15,10 +15,10 @@ State::State(const Static::OsmKeyValueObjectStore &store, const sserialize::Item
 			 const kvclustering::KeyValueExclusions &keyValueExclusions,
 			 Data::KeyValueItemMap &keyValueItemMap,
 			 size_t numberOfThreads) :
-		keyExclusions(keyExclusions),
-		keyValueExclusions(keyValueExclusions),
 		store(store),
 		items(items),
+		keyExclusions(keyExclusions),
+		keyValueExclusions(keyValueExclusions),
 		keyValueItemMap(keyValueItemMap),
 		numberOfThreads(numberOfThreads)
 {}
