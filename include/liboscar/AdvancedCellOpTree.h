@@ -11,7 +11,10 @@
 #include <sserialize/utility/assert.h>
 
 namespace liboscar {
-
+	
+/**
+  * ACCURACY_DEFINITION := poly-item|poly-itembbox|polybbox-item|polybbox-itembbox|poly-cell|poly-cellbbox|polybbox-cell|polybbox-cellbbox
+*/
 class AdvancedCellOpTree: public AdvancedOpTree {
 public:
 	struct CalcBase {
@@ -104,7 +107,6 @@ public:
 	const sserialize::Static::CQRDilator & cqrd() const { return m_cqrd; }
 	const CQRFromComplexSpatialQuery & csq() const { return m_csq; }
 	const sserialize::spatial::GeoHierarchySubGraph & ghsg() const { return m_ghsg; }
-
 private:
 	sserialize::Static::CellTextCompleter m_ctc;
 	sserialize::Static::CQRDilator m_cqrd;
@@ -128,13 +130,18 @@ AdvancedCellOpTree::calc(uint32_t threadCount) {
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRect(AdvancedCellOpTree::Node* node) {
-	sserialize::spatial::GeoRect rect(node->value, true);
-	if (rect.lengthInM() < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX) {
-		return T_CQR_TYPE( m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon::fromRect(rect), CQRFromPolygon::AC_AUTO, m_ctc.flags(), m_threadCount) );
+	liboscar::CQRFromPolygon::Accuracy ac = liboscar::CQRFromPolygon::AC_AUTO;
+	sserialize::spatial::GeoRect rect;
+	auto pos = node->value.find_first_of(':');
+	if (pos != std::string::npos) {
+		ac = liboscar::CQRFromPolygon::toAccuracy(node->value.substr(0, pos));
+		rect = sserialize::spatial::GeoRect(node->value.substr(pos+1), true);
 	}
 	else {
-		return m_ctc.cqrFromRect<CQRType>(rect);
+		rect = sserialize::spatial::GeoRect(node->value, true);
 	}
+	return T_CQR_TYPE( m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon::fromRect(rect), ac, m_ctc.flags(), m_threadCount) );
+
 }
 
 template<typename T_CQR_TYPE>
@@ -142,6 +149,7 @@ T_CQR_TYPE
 AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPolygon(AdvancedCellOpTree::Node* node) {
 	//first construct the polygon out of the values
 	std::vector<sserialize::spatial::GeoPoint> gps;
+	liboscar::CQRFromPolygon::Accuracy ac = liboscar::CQRFromPolygon::AC_AUTO;
 	{
 		struct MyOut {
 			std::vector<sserialize::spatial::GeoPoint> * dest;
@@ -162,7 +170,15 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPolygon(AdvancedCellOpTree::Node* node
 			MyOut(std::vector<sserialize::spatial::GeoPoint> * d) : dest(d), m_firstCoord(std::numeric_limits<double>::max()) {}
 		};
 		typedef sserialize::OneValueSet<uint32_t> MyS;
-		sserialize::split<std::string::const_iterator, MyS, MyS, MyOut>(node->value.begin(), node->value.end(), MyS(','), MyS('\\'), MyOut(&gps));
+		auto pos = node->value.find_first_of(':');
+		if (pos != std::string::npos) {
+			ac = liboscar::CQRFromPolygon::toAccuracy(node->value.substr(0, pos));
+			pos += 1;
+		}
+		else {
+			pos = 0;
+		}
+		sserialize::split<std::string::const_iterator, MyS, MyS, MyOut>(node->value.begin()+pos, node->value.end(), MyS(','), MyS('\\'), MyOut(&gps));
 	}
 	if (gps.size() < 3) {
 		return T_CQR_TYPE();
@@ -172,7 +188,7 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPolygon(AdvancedCellOpTree::Node* node
 		gps.push_back(gps.front());
 	}
 	
-	sserialize::CellQueryResult cqr = m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon(std::move(gps)), CQRFromPolygon::AC_AUTO, m_ctc.flags(), m_threadCount);
+	sserialize::CellQueryResult cqr = m_csq.cqrfp().cqr(sserialize::spatial::GeoPolygon(std::move(gps)), ac, m_ctc.flags(), m_threadCount);
 	return T_CQR_TYPE(cqr);
 }
 

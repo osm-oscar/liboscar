@@ -22,9 +22,9 @@
   * BINARY_OP := - | + | INTERSECTION | ^ |
   * INTERSECTION := ' ' | / | , | .
   * ITEM := $item:<itemId>
-  * GEO_RECT := $geo:<rect-defintion>
+  * GEO_RECT := $geo:[ACCURACY_DEFINITION]:<rect-defintion>
   * POINT := $point:radius,lat,lon
-  * POLYGON := $poly:[lat,lon]
+  * POLYGON := $poly:[ACCURACY_DEFINITION]:[lat,lon]
   * GEO_PATH := $path:radius,[lat,lon]
   * REGION := $region:<storeId>
   * REGION_EXCLUSIVE_CELLS := $rec:<storeId>
