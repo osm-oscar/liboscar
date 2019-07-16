@@ -112,15 +112,21 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 		}
 	}
 	switch (ac) {
-	case liboscar::CQRFromPolygon::AC_POLYGON_BBOX_CELL_BBOX:
-		return sserialize::CellQueryResult(geoHierarchy().intersectingCells(idxStore(), gp.boundary()), cellInfo(), idxStore(), cqrFlags);
-	case liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX:
-	case liboscar::CQRFromPolygon::AC_POLYGON_CELL:
-		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), cellInfo(), idxStore(), cqrFlags);
-	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX:
-		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemBBoxIntersectOp>(gp).convert(cqrFlags);
 	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM:
 		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemIntersectOp>(gp).convert(cqrFlags);
+	case liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX:
+		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyCellItemBBoxIntersectOp>(gp).convert(cqrFlags);
+	case liboscar::CQRFromPolygon::AC_POLYGON_BBOX_ITEM:
+		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyBBoxCellItemIntersectOp>(gp).convert(cqrFlags);
+	case liboscar::CQRFromPolygon::AC_POLYGON_BBOX_ITEM_BBOX:
+		return intersectingCellsPolygonItem<detail::CQRFromPolygonHelpers::PolyBBoxCellItemBBoxIntersectOp>(gp).convert(cqrFlags);
+
+	case liboscar::CQRFromPolygon::AC_POLYGON_CELL:
+	case liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX:
+		return sserialize::CellQueryResult(intersectingCellsPolygonCellBBox(gp), cellInfo(), idxStore(), cqrFlags);
+	case liboscar::CQRFromPolygon::AC_POLYGON_BBOX_CELL:
+	case liboscar::CQRFromPolygon::AC_POLYGON_BBOX_CELL_BBOX:
+		return sserialize::CellQueryResult(geoHierarchy().intersectingCells(idxStore(), gp.boundary()), cellInfo(), idxStore(), cqrFlags);
 	default:
 		throw sserialize::InvalidEnumValueException("CQRFromPolygon::Accuracy does not have " + std::to_string(ac) + " as value");
 		return sserialize::CellQueryResult();;

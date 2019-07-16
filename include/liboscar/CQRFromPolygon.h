@@ -13,7 +13,11 @@ namespace detail {
 class CQRFromPolygon final {
 public:
 	///AC_POLYGON_CELL and more accurate are currently unimplemented and fall back to AC_POLYGON_CELL_BBOX
-	enum Accuracy : uint32_t { AC_AUTO, AC_POLYGON_ITEM, AC_POLYGON_ITEM_BBOX, AC_POLYGON_CELL, AC_POLYGON_CELL_BBOX, AC_POLYGON_BBOX_CELL_BBOX};
+	enum Accuracy : uint32_t {
+		AC_AUTO,
+		AC_POLYGON_ITEM, AC_POLYGON_ITEM_BBOX, AC_POLYGON_BBOX_ITEM, AC_POLYGON_BBOX_ITEM_BBOX,
+		AC_POLYGON_CELL, AC_POLYGON_CELL_BBOX, AC_POLYGON_BBOX_CELL, AC_POLYGON_BBOX_CELL_BBOX
+	};
 	
 	///Values for AC_AUTO. Accuracy is used if length of the polygon is below threshold
 	enum AccurayThresholds : uint32_t {
@@ -205,6 +209,23 @@ struct PolyCellItemIntersectBaseOp {
 	{}
 };
 
+struct PolyBBoxCellItemBBoxIntersectOp: public PolyCellItemIntersectBaseOp<PolyBBoxCellItemBBoxIntersectOp> {
+	inline bool intersects(uint32_t itemId) {
+		return m_gpb.overlap(store.geoShape(itemId).boundary());
+	}
+	PolyBBoxCellItemBBoxIntersectOp(const sserialize::spatial::GeoPolygon & gp,
+				const sserialize::Static::spatial::GeoPolygon & sgp,
+				const sserialize::Static::spatial::GeoHierarchy & gh,
+				const liboscar::Static::OsmKeyValueObjectStore & store,
+				const sserialize::Static::ItemIndexStore & idxStore,
+				std::unordered_set<uint32_t> & fullMatches,
+				std::map<uint32_t, sserialize::ItemIndex> & partialMatches) :
+	PolyCellItemIntersectBaseOp(gp, sgp, gh, store, idxStore, fullMatches, partialMatches),
+	m_gpb(gp.boundary())
+	{}
+	sserialize::spatial::GeoRect m_gpb;
+};
+
 struct PolyCellItemBBoxIntersectOp: public PolyCellItemIntersectBaseOp<PolyCellItemBBoxIntersectOp> {
 	inline bool intersects(uint32_t itemId) {
 		return gp.intersects(store.geoShape(itemId).boundary());
@@ -218,6 +239,23 @@ struct PolyCellItemBBoxIntersectOp: public PolyCellItemIntersectBaseOp<PolyCellI
 				std::map<uint32_t, sserialize::ItemIndex> & partialMatches) :
 	PolyCellItemIntersectBaseOp(gp, sgp, gh, store, idxStore, fullMatches, partialMatches)
 	{}
+};
+
+struct PolyBBoxCellItemIntersectOp: public PolyCellItemIntersectBaseOp<PolyBBoxCellItemIntersectOp> {
+	inline bool intersects(uint32_t itemId) {
+		return store.geoShape(itemId).get()->intersects(m_gpb);
+	}
+	PolyBBoxCellItemIntersectOp(const sserialize::spatial::GeoPolygon & gp,
+				const sserialize::Static::spatial::GeoPolygon & sgp,
+				const sserialize::Static::spatial::GeoHierarchy & gh,
+				const liboscar::Static::OsmKeyValueObjectStore & store,
+				const sserialize::Static::ItemIndexStore & idxStore,
+				std::unordered_set<uint32_t> & fullMatches,
+				std::map<uint32_t, sserialize::ItemIndex> & partialMatches) :
+	PolyCellItemIntersectBaseOp(gp, sgp, gh, store, idxStore, fullMatches, partialMatches),
+	m_gpb(gp.boundary())
+	{}
+	sserialize::spatial::GeoRect m_gpb;
 };
 
 struct PolyCellItemIntersectOp: public PolyCellItemIntersectBaseOp<PolyCellItemIntersectOp> {
