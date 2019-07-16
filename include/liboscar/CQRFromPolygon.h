@@ -43,6 +43,20 @@ public:
 	///supports AC_POLYGON_ITEM_BBOX and AC_POLYGON_ITEM, does NOT support AC_POLYGON_CELL, falls back to AC_POLYGON_CELL_BBOX
 	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPolygon & gp, Accuracy ac, int cqrFlags, uint32_t threadCount) const;
 	sserialize::CellQueryResult cqr(const sserialize::spatial::GeoPoint & gp, double radius, Accuracy ac, int cqrFlags, uint32_t threadCount) const;
+public:
+	///unparseable strings map to AC_AUTO
+	static Accuracy toAccuracy(std::string const & str);
+private:
+	static constexpr std::array<std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>, 8> Str2PolyAcc = {
+		std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>{"poly-item", liboscar::CQRFromPolygon::AC_POLYGON_ITEM},
+		std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>{"poly-itembbox", liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX},
+		std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>{"polybbox-item", liboscar::CQRFromPolygon::AC_POLYGON_BBOX_ITEM},
+		std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>{"polybbox-itembbox", liboscar::CQRFromPolygon::AC_POLYGON_BBOX_ITEM_BBOX},
+		std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>{"poly-cell", liboscar::CQRFromPolygon::AC_POLYGON_CELL},
+		std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>{"poly-cellbbox", liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX},
+		std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>{"polybbox-cell", liboscar::CQRFromPolygon::AC_POLYGON_BBOX_CELL},
+		std::pair<const char *, liboscar::CQRFromPolygon::Accuracy>{"polybbox-cellbbox", liboscar::CQRFromPolygon::AC_POLYGON_BBOX_CELL_BBOX},
+	};
 private:
 	sserialize::RCPtrWrapper<detail::CQRFromPolygon> m_priv;
 };

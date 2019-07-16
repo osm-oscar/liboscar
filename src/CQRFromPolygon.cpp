@@ -41,6 +41,17 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 	return m_priv->cqr(gp, radius, ac, cqrFlags, threadCount);
 }
 
+
+CQRFromPolygon::Accuracy
+CQRFromPolygon::toAccuracy(std::string const & str) {
+	for(auto const & x : Str2PolyAcc) {
+		if (std::strcmp(x.first, str.c_str()) == 0) {
+			return x.second;
+		}
+	}
+	return AC_AUTO;
+}
+
 namespace detail {
 
 CQRFromPolygon::CQRFromPolygon(const Static::OsmKeyValueObjectStore& store, const sserialize::Static::ItemIndexStore & idxStore) :
