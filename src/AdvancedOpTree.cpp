@@ -152,7 +152,11 @@ Token Tokenizer::next() {
 			//check for modifiers
 			if (m_state.it != m_state.end) {
 				if (*m_state.it == '#') {
-					t.type = Token::REGION_DILATION_OP;
+					t.type = Token::REGION_DILATION_BY_CELL_COVERAGE_OP;
+					++m_state.it;
+				}
+				else if (*m_state.it == '!') {
+					t.type = Token::REGION_DILATION_BY_ITEM_COVERAGE_OP;
 					++m_state.it;
 				}
 				else if('0' <= *m_state.it && '9' >= *m_state.it) {
@@ -389,8 +393,11 @@ detail::AdvancedOpTree::Node* Parser::parseUnaryOps() {
 	case Token::NEAR_OP:
 		nst = Node::NEAR_OP;
 		break;
-	case Token::REGION_DILATION_OP:
-		nst = Node::REGION_DILATION_OP;
+	case Token::REGION_DILATION_BY_CELL_COVERAGE_OP:
+		nst = Node::REGION_DILATION_BY_CELL_COVERAGE_OP;
+		break;
+	case Token::REGION_DILATION_BY_ITEM_COVERAGE_OP:
+		nst = Node::REGION_DILATION_BY_ITEM_COVERAGE_OP;
 		break;
 	case Token::FM_CONVERSION_OP:
 		nst = Node::FM_CONVERSION_OP;
@@ -413,7 +420,8 @@ detail::AdvancedOpTree::Node* Parser::parseUnaryOps() {
 	case Token::CELL_DILATION_OP:
 	case Token::NEAR_OP:
 	case Token::IN_OP:
-	case Token::REGION_DILATION_OP:
+	case Token::REGION_DILATION_BY_CELL_COVERAGE_OP:
+	case Token::REGION_DILATION_BY_ITEM_COVERAGE_OP:
 	case Token::COMPASS_OP:
 	case Token::RELEVANT_ELEMENT_OP:
 	case Token::QUERY_EXCLUSIVE_CELLS:
@@ -455,7 +463,8 @@ detail::AdvancedOpTree::Node* Parser::parseSingleQ() {
 	case Token::QUERY_EXCLUSIVE_CELLS:
 	case Token::FM_CONVERSION_OP:
 	case Token::CELL_DILATION_OP:
-	case Token::REGION_DILATION_OP:
+	case Token::REGION_DILATION_BY_CELL_COVERAGE_OP:
+	case Token::REGION_DILATION_BY_ITEM_COVERAGE_OP:
 	case Token::COMPASS_OP:
 	case Token::RELEVANT_ELEMENT_OP:
 	{
@@ -570,7 +579,8 @@ detail::AdvancedOpTree::Node* Parser::parseQ() {
 		case Token::IN_OP:
 		case Token::NEAR_OP:
 		case Token::CELL_DILATION_OP:
-		case Token::REGION_DILATION_OP:
+		case Token::REGION_DILATION_BY_CELL_COVERAGE_OP:
+		case Token::REGION_DILATION_BY_ITEM_COVERAGE_OP:
 		case Token::COMPASS_OP:
 		case Token::RELEVANT_ELEMENT_OP:
 		case Token::QUERY_EXCLUSIVE_CELLS:

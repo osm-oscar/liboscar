@@ -48,8 +48,11 @@ public:
 		sserialize::CellQueryResult calcRelevantElementOp(Node * node, const sserialize::CellQueryResult & cqr);
 		sserialize::CellQueryResult calcInOp(Node * node, const sserialize::CellQueryResult & cqr);
 		///th in [0, 1]
-		sserialize::ItemIndex calcDilateRegionOp(double th, const sserialize::CellQueryResult & cqr);
-		sserialize::ItemIndex calcDilateRegionOp(Node * node, const sserialize::CellQueryResult & cqr);
+		sserialize::ItemIndex calcDilateRegionByCellCoverageOp(double th, const sserialize::CellQueryResult & cqr);
+		sserialize::ItemIndex calcDilateRegionByCellCoverageOp(Node * node, const sserialize::CellQueryResult & cqr);
+
+		sserialize::ItemIndex calcDilateRegionByItemCoverageOp(double th, const sserialize::CellQueryResult & cqr);
+		sserialize::ItemIndex calcDilateRegionByItemCoverageOp(Node * node, const sserialize::CellQueryResult & cqr);
 		static std::vector<double> asDoubles(const std::string & str);
 	};
 
@@ -78,7 +81,8 @@ public:
 		CQRType calcTriangles(Node * node);
 		CQRType calcUnaryOp(Node * node);
 		CQRType calcDilationOp(Node * node);
-		CQRType calcRegionDilationOp(Node * node);
+		CQRType calcRegionDilationByCellCoverageOp(Node * node);
+		CQRType calcRegionDilationByItemCoverageOp(Node * node);
 		CQRType calcQueryExclusiveCells(Node * node);
 		CQRType calcCompassOp(Node * node);
 		CQRType calcNearOp(Node * node);
@@ -446,12 +450,19 @@ AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcDilationOp(Advan
 
 template<>
 sserialize::CellQueryResult
-AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationOp(AdvancedCellOpTree::Node* node);
+AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationByItemCoverageOp(AdvancedCellOpTree::Node* node);
 
 template<>
 sserialize::TreedCellQueryResult
-AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRegionDilationOp(AdvancedCellOpTree::Node* node);
+AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRegionDilationByItemCoverageOp(AdvancedCellOpTree::Node* node);
 
+template<>
+sserialize::CellQueryResult
+AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationByCellCoverageOp(AdvancedCellOpTree::Node* node);
+
+template<>
+sserialize::TreedCellQueryResult
+AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRegionDilationByCellCoverageOp(AdvancedCellOpTree::Node* node);
 
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
@@ -494,8 +505,10 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 			return calcUnaryOp(node);
 		case Node::CELL_DILATION_OP:
 			return calcDilationOp(node);
-		case Node::REGION_DILATION_OP:
-			return calcRegionDilationOp(node);
+		case Node::REGION_DILATION_BY_CELL_COVERAGE_OP:
+			return calcRegionDilationByCellCoverageOp(node);
+		case Node::REGION_DILATION_BY_ITEM_COVERAGE_OP:
+			return calcRegionDilationByItemCoverageOp(node);
 		case Node::COMPASS_OP:
 			return calcCompassOp(node);
 		case Node::IN_OP:

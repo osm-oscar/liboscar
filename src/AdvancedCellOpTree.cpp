@@ -72,14 +72,14 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcRelevantElementOp(
 
 sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcInOp(Node *, const sserialize::CellQueryResult & cqr) {
 	return sserialize::CellQueryResult(
-		calcDilateRegionOp(0.9, cqr),
+		calcDilateRegionByItemCoverageOp(0.9, cqr),
 		cqr.cellInfo(),
 		cqr.idxStore(),
 		cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
 	);
 }
 
-sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionOp(double th, const sserialize::CellQueryResult & cqr) {
+sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionByCellCoverageOp(double th, const sserialize::CellQueryResult & cqr) {
 	const sserialize::Static::spatial::GeoHierarchy & gh = m_ctc.geoHierarchy();
 	const sserialize::Static::ItemIndexStore & idxStore = this->idxStore();
 
@@ -91,12 +91,7 @@ sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionOp(double th
 		uint32_t cellId = it.cellId();
 		for(uint32_t cP(gh.cellParentsBegin(cellId)), cE(gh.cellParentsEnd(cellId)); cP != cE; ++cP) {
 			uint32_t rId = gh.cellPtr(cP);
-			if (r2cc.count(rId)) {
-				r2cc[rId] += 1;
-			}
-			else {
-				r2cc[rId] = 1;
-			}
+			r2cc[rId] += 1; //default init is 0 for uint32_t
 		}
 	}
 	for(auto x : r2cc) {
@@ -113,14 +108,57 @@ sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionOp(double th
 	return res;
 }
 
-sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionOp(AdvancedCellOpTree::Node * node, const sserialize::CellQueryResult & cqr) {
+sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionByCellCoverageOp(AdvancedCellOpTree::Node * node, const sserialize::CellQueryResult & cqr) {
 	double th = sserialize::stod(node->value.c_str());
 	if (th <= 0.0) {
 		return sserialize::ItemIndex();
 	}
 	th /= 100.0;
 	
-	return calcDilateRegionOp(th, cqr);
+	return calcDilateRegionByCellCoverageOp(th, cqr);
+}
+
+sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionByItemCoverageOp(double th, const sserialize::CellQueryResult & cqr) {
+	//Note that we may overshoot the number of items in a region
+	//since we may count items multiple times if they are in multiple cells of the same region
+
+	const sserialize::Static::spatial::GeoHierarchy & gh = m_ctc.geoHierarchy();
+	const sserialize::Static::ItemIndexStore & idxStore = this->idxStore();
+
+	std::vector<uint32_t> regions;
+
+	std::unordered_map<uint32_t, uint32_t> r2cc;
+	
+	for(auto it(cqr.cbegin()), end(cqr.cend()); it != end; ++it) {
+		uint32_t cellId = it.cellId();
+		uint32_t cellIdxSize = it.idxSize();
+		for(uint32_t cP(gh.cellParentsBegin(cellId)), cE(gh.cellParentsEnd(cellId)); cP != cE; ++cP) {
+			uint32_t rId = gh.cellPtr(cP);
+			r2cc[rId] +=  cellIdxSize; //default init is 0 for uint32_t
+		}
+	}
+	for(auto x : r2cc) {
+		if ( (double(x.second) / gh.regionItemsCount(x.first)) > th) {
+			regions.push_back(x.first);
+		}
+	}
+	
+	//regions need to be unique
+	sserialize::ItemIndex res = sserialize::treeReduceMap<std::vector<uint32_t>::iterator, sserialize::ItemIndex>(regions.begin(), regions.end(),
+		[](const sserialize::ItemIndex & a, const sserialize::ItemIndex & b) { return a+b; },
+		[&gh, &idxStore](uint32_t x) { return idxStore.at( gh.regionCellIdxPtr(x) ); }
+	);
+	return res;
+}
+
+sserialize::ItemIndex AdvancedCellOpTree::CalcBase::calcDilateRegionByItemCoverageOp(AdvancedCellOpTree::Node * node, const sserialize::CellQueryResult & cqr) {
+	double th = sserialize::stod(node->value.c_str());
+	if (th <= 0.0) {
+		return sserialize::ItemIndex();
+	}
+	th /= 100.0;
+	
+	return calcDilateRegionByItemCoverageOp(th, cqr);
 }
 
 std::vector<double> AdvancedCellOpTree::CalcBase::asDoubles(const std::string & str) {
@@ -209,10 +247,10 @@ AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcDilationOp(Advan
 
 template<>
 sserialize::CellQueryResult
-AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationOp(AdvancedCellOpTree::Node* node) {
+AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationByCellCoverageOp(AdvancedCellOpTree::Node* node) {
 	sserialize::CellQueryResult cqr( calc(node->children.front()) );
 	return sserialize::CellQueryResult(
-										CalcBase::calcDilateRegionOp(node, cqr),
+										CalcBase::calcDilateRegionByCellCoverageOp(node, cqr),
 										cqr.cellInfo(),
 										cqr.idxStore(),
 										cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
@@ -221,10 +259,34 @@ AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationOp(Adva
 
 template<>
 sserialize::TreedCellQueryResult
-AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRegionDilationOp(AdvancedCellOpTree::Node* node) {
+AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRegionDilationByCellCoverageOp(AdvancedCellOpTree::Node* node) {
 	sserialize::TreedCellQueryResult cqr( calc(node->children.front()) );
 	return sserialize::TreedCellQueryResult(
-											CalcBase::calcDilateRegionOp(node, cqr.toCQR()),
+											CalcBase::calcDilateRegionByCellCoverageOp(node, cqr.toCQR()),
+											cqr.cellInfo(),
+											cqr.idxStore(),
+											cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
+											);
+}
+
+template<>
+sserialize::CellQueryResult
+AdvancedCellOpTree::Calc<sserialize::CellQueryResult>::calcRegionDilationByItemCoverageOp(AdvancedCellOpTree::Node* node) {
+	sserialize::CellQueryResult cqr( calc(node->children.front()) );
+	return sserialize::CellQueryResult(
+										CalcBase::calcDilateRegionByItemCoverageOp(node, cqr),
+										cqr.cellInfo(),
+										cqr.idxStore(),
+										cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
+									  );
+}
+
+template<>
+sserialize::TreedCellQueryResult
+AdvancedCellOpTree::Calc<sserialize::TreedCellQueryResult>::calcRegionDilationByItemCoverageOp(AdvancedCellOpTree::Node* node) {
+	sserialize::TreedCellQueryResult cqr( calc(node->children.front()) );
+	return sserialize::TreedCellQueryResult(
+											CalcBase::calcDilateRegionByItemCoverageOp(node, cqr.toCQR()),
 											cqr.cellInfo(),
 											cqr.idxStore(),
 											cqr.flags() & sserialize::CellQueryResult::FF_MASK_CELL_ITEM_IDS
