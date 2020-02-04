@@ -17,6 +17,7 @@ public:
 	OsmIdType(const sserialize::UByteArrayAdapter & d) : OsmIdType(d.getVlPackedInt64(0)) {}
 	OsmIdType(const OsmIdType & other) : m_d(other.m_d) {}
 	~OsmIdType() {}
+	OsmIdType & operator=(OsmIdType const&) = default;
 	inline const int64_t & raw() const { return m_d; }
 	inline int64_t & raw() { return m_d; }
 	inline int64_t id() const { return m_d >> 2; }
