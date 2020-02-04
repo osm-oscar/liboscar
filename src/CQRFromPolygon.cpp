@@ -95,7 +95,7 @@ sserialize::ItemIndex CQRFromPolygon::fullMatches(const sserialize::spatial::Geo
 	};
 }
 
-sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPolygon& gp, liboscar::CQRFromPolygon::Accuracy ac, int cqrFlags, uint32_t threadCount) const {
+sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPolygon& gp, liboscar::CQRFromPolygon::Accuracy ac, int cqrFlags, uint32_t /*threadCount*/) const {
 	if (ac == liboscar::CQRFromPolygon::AC_AUTO) {
 		double th;
 		{
