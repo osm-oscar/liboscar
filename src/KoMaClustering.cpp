@@ -100,7 +100,7 @@ void KoMaClustering::exclude(const kvclustering::KeyValueExclusions &e) {
 	keyValueExclusions + e;
 }
 
-std::vector<KoMaClustering::KeyInfo> KoMaClustering::topKeys(uint32_t k) {
+std::vector<KoMaClustering::KeyInfo> KoMaClustering::topKeys(uint32_t /*k*/) {
 	return std::vector<KeyInfo>();
 }
 
@@ -198,7 +198,7 @@ std::vector<std::pair<uint32_t, std::list<std::pair<uint32_t, uint32_t>>>>
 KoMaClustering::facets(uint32_t k, std::map<std::uint32_t, std::uint32_t> dynFacetSize, std::uint32_t defaultFacetSize) {
 	std::vector<std::pair<uint32_t, std::list<std::pair<uint32_t, uint32_t>>>> result;
 	std::unordered_set<uint32_t> keyIds;
-	for(auto i = 0; i < k; ++i){
+	for(decltype(k) i = 0; i < k; ++i){
 		const auto& topKeyValue = topKeyValues(1);
 		if(topKeyValue.empty())
 			return result;
@@ -225,14 +225,14 @@ std::list<KoMaClustering::ValueCountPair> KoMaClustering::findValuesToKey(std::u
 	// report all matches according to facetSize
 
 	// the range is saved in the variables begin and end
-	size_t begin, end;
+	std::size_t begin, end;
 
-	size_t lb = 0;
-	size_t ub = keyValueCountVecSortedByIds.size();
+	std::size_t lb = 0;
+	std::size_t ub = keyValueCountVecSortedByIds.size();
 
 
 	while(ub >= lb) {
-		size_t mid = lb + (ub - lb) / 2;
+		std::size_t mid = lb + (ub - lb) / 2;
 		if(keyValueCountVecSortedByIds.at(mid).first.first == keyId ) {
 			// found key now go backwards and forwards to find the total range of values with the same key
 			begin = mid;
@@ -260,7 +260,7 @@ std::list<KoMaClustering::ValueCountPair> KoMaClustering::findValuesToKey(std::u
 			ub = mid - 1;
 		}
 	}
-	for(int i = begin; i <= end && i < begin+facetSize; ++i) {
+	for(std::size_t i = begin; i <= end && i < begin+facetSize; ++i) {
 		auto& keyValuePair = keyValueCountVecSortedByIds.at(i);
 		result.emplace_back(std::make_pair(keyValuePair.first.second, keyValuePair.second));
 	}
