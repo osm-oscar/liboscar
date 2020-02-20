@@ -225,7 +225,7 @@ std::list<KoMaClustering::ValueCountPair> KoMaClustering::findValuesToKey(std::u
 	// report all matches according to facetSize
 
 	// the range is saved in the variables begin and end
-	std::size_t begin, end;
+	std::size_t begin{0}, end{0};
 
 	std::size_t lb = 0;
 	std::size_t ub = keyValueCountVecSortedByIds.size();
