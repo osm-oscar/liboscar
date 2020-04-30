@@ -42,7 +42,7 @@ inline sserialize::UByteArrayAdapter & operator<<(sserialize::UByteArrayAdapter 
 }
 
 inline sserialize::UByteArrayAdapter & operator>>(sserialize::UByteArrayAdapter & dest, OsmIdType & src) {
-	dest >> src.raw();
+	src.raw() = dest.getVlPackedInt64();
 	return dest;
 }
 
