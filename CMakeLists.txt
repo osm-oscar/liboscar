@@ -10,7 +10,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/vendor/sserialize/vendor/libdts2/vendor/libratss/cma
 include(AddTargetProperties)
 
 find_package(LIBRT)
-find_package(CGALSimple)
+find_package(CGAL)
+find_package(Boost COMPONENTS thread)
 
 if (LIBOSCAR_NO_DATA_REFCOUNTING_ENABLED)
 	set(MY_COMPILE_DEFINITIONS "-DWITH_LIBOSCAR_NO_DATA_REFCOUNTING")
@@ -32,7 +33,7 @@ set(MY_INCLUDE_DIRS
 
 set(MY_LINK_LIBRARIES
 	sserialize
-	CGALSimple::CGAL
+	CGAL::CGAL
 )
 
 set(MY_COMPILE_DEFINITIONS
