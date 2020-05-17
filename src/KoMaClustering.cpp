@@ -77,7 +77,7 @@ KoMaClustering::KoMaClustering(const Static::OsmKeyValueObjectStore &store,
 							   const uint32_t threadCount) :
 		store(store), items(items), keyExclusions(keyExclusions), keyValueExclusions(keyValueExclusions), threadCount(threadCount)
 {
-	if (items.type() & sserialize::ItemIndex::RANDOM_ACCESS_NO) {
+	if (items.type() & int(sserialize::ItemIndex::RANDOM_ACCESS_NO)) {
 		items = sserialize::ItemIndex( items.toVector() );
 	}
 }

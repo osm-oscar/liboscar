@@ -201,7 +201,7 @@ m_store(store)
 {}
 
 KVStats::Stats KVStats::stats(const sserialize::ItemIndex & items, uint32_t threadCount) {
-	if (items.type() & sserialize::ItemIndex::RANDOM_ACCESS_NO) {
+	if (items.type() & int(sserialize::ItemIndex::RANDOM_ACCESS_NO)) {
 		return stats( sserialize::ItemIndex( items.toVector() ), threadCount);
 	}
 	

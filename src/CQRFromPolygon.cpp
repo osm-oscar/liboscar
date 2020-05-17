@@ -101,21 +101,21 @@ sserialize::CellQueryResult CQRFromPolygon::cqr(const sserialize::spatial::GeoPo
 		{
 			double gpLen = gp.length();
 			double gpDiag = gp.boundary().diagInM();
-			if (gpLen > liboscar::CQRFromPolygon::ACT_USE_LENGTH_OVER_DIAGONAL_RATIO*gpDiag) {
-				th = gpLen / liboscar::CQRFromPolygon::ACT_USE_LENGTH_OVER_DIAGONAL_RATIO;
+			if (gpLen > double(liboscar::CQRFromPolygon::ACT_USE_LENGTH_OVER_DIAGONAL_RATIO)*gpDiag) {
+				th = gpLen / double(liboscar::CQRFromPolygon::ACT_USE_LENGTH_OVER_DIAGONAL_RATIO);
 			}
 			else {
 				th = gpDiag;
 			}
 		}
 		
-		if (th < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM) {
+		if (th < double(liboscar::CQRFromPolygon::ACT_POLYGON_ITEM)) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_ITEM;
 		}
-		else if (th < liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX) {
+		else if (th < double(liboscar::CQRFromPolygon::ACT_POLYGON_ITEM_BBOX)) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_ITEM_BBOX;
 		}
-		else if (th < liboscar::CQRFromPolygon::ACT_POLYGON_CELL_BBOX) {
+		else if (th < double(liboscar::CQRFromPolygon::ACT_POLYGON_CELL_BBOX)) {
 			ac = liboscar::CQRFromPolygon::AC_POLYGON_CELL_BBOX;
 		}
 		else { //really large, use fast test
