@@ -65,8 +65,8 @@ sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcCompassOp(liboscar
 	return m_csq.compassOp(cqr, direction, m_threadCount);
 }
 
-sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcRelevantElementOp(liboscar::AdvancedCellOpTree::Node* node, const sserialize::CellQueryResult& cqr) {
-	assert(node && node->value == "*");
+sserialize::CellQueryResult AdvancedCellOpTree::CalcBase::calcRelevantElementOp(liboscar::AdvancedCellOpTree::Node* SSERIALIZE_CHEAP_ASSERT_EXEC(node), const sserialize::CellQueryResult& cqr) {
+	SSERIALIZE_CHEAP_ASSERT(node && node->value == "*");
 	return m_csq.relevantElementOp(cqr);
 }
 
