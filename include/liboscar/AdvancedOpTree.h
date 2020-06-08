@@ -21,6 +21,9 @@
   * BETWEEN_OP := <-> | :between
   * BINARY_OP := - | + | INTERSECTION | ^ |
   * INTERSECTION := ' ' | / | , | .
+  * FUNCTION_CALL := $function_name FUNCTION_CALL_PARAMETER_SPEC
+  * FUNCTION_CALL_PARAMETER_SPEC := ':' [^WHITE_SPACE, ')', '(']* | '(' ['(', ')']* ')'
+  * 
   * ITEM := $item:<itemId>
   * GEO_RECT := $geo:[ACCURACY_DEFINITION]:<rect-defintion>
   * POINT := $point:radius,lat,lon
@@ -46,6 +49,7 @@ struct Node {
 		IN_OP, NEAR_OP,
 		SET_OP, BETWEEN_OP,
 		QUERY_EXCLUSIVE_CELLS,
+		FUNCTION_CALL,
 		RECT, POLYGON, PATH, POINT,
 		REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS,
 		CELL, CELLS,
@@ -54,7 +58,7 @@ struct Node {
 	};
 	int baseType;
 	int subType;
-	std::string value;
+	std::string value; //in case of subType == FUNCTION_CALL this contains the parameters
 	std::vector<Node*> children;
 	Node() {}
 	Node(int baseType, int subType, const std::string & value) : baseType(baseType), subType(subType), value(value) {}
@@ -84,6 +88,7 @@ struct Token {
 		IN_OP,
 		NEAR_OP,
 		SET_OP,
+		FUNCTION_CALL,
 		GEO_RECT,
 		GEO_POLYGON,
 		GEO_PATH,

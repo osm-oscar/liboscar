@@ -207,9 +207,15 @@ Token Tokenizer::next() {
 		{
 			//read until the first occurence of :
 			std::string tmp;
+			bool bracedParameterList = false;
 			for(++m_state.it; m_state.it != m_state.end;) {
 				if (*m_state.it == ':') {
 					++m_state.it;
+					break;
+				}
+				else if (*m_state.it == '(') {
+					++m_state.it;
+					bracedParameterList = true;
 					break;
 				}
 				else {
@@ -258,13 +264,31 @@ Token Tokenizer::next() {
 			else if (tmp == "point") {
 				t.type = Token::GEO_POINT;
 			}
-			for(; m_state.it != m_state.end;) {
-				if (isWhiteSpace(*m_state.it) || (opSeparates && isOperator(*m_state.it)) || isScope(*m_state.it)) {
-					break;
-				}
-				else {
+			if (bracedParameterList) {
+				std::size_t braceCount = 1;
+				for(; m_state.it != m_state.end && braceCount; ++m_state.it) {
+					if (*m_state.it == '(') {
+						braceCount += 1;
+					}
+					else if (*m_state.it == ')') {
+						braceCount -= 1;
+					}
 					t.value += *m_state.it;
-					++m_state.it;
+				}
+				if (!braceCount && t.value.size()) {
+					SSERIALIZE_CHEAP_ASSERT_EQUAL(')', t.value.back());
+					t.value.pop_back();
+				}
+			}
+			else {
+				for(; m_state.it != m_state.end;) {
+					if (isWhiteSpace(*m_state.it) || (opSeparates && isOperator(*m_state.it)) || isScope(*m_state.it)) {
+						break;
+					}
+					else {
+						t.value += *m_state.it;
+						++m_state.it;
+					}
 				}
 			}
 			return t;
