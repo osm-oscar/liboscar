@@ -7,12 +7,14 @@ AdvancedCellOpTree(
 	const sserialize::Static::CellTextCompleter & ctc,
 	const sserialize::Static::CQRDilator & cqrd,
 	const CQRFromComplexSpatialQuery & csq,
-	const sserialize::spatial::GeoHierarchySubGraph & ghsg) :
+	const sserialize::spatial::GeoHierarchySubGraph & ghsg,
+	std::shared_ptr<liboscar::interface::CQRFromRouting> cqrr) :
 AdvancedOpTree(),
 m_ctc(ctc),
 m_cqrd(cqrd),
 m_csq(csq),
-m_ghsg(ghsg)
+m_ghsg(ghsg),
+m_cqrr(cqrr)
 {}
 
 AdvancedCellOpTree::~AdvancedCellOpTree() {}
@@ -202,6 +204,10 @@ const liboscar::Static::OsmKeyValueObjectStore & AdvancedCellOpTree::CalcBase::s
 
 const sserialize::spatial::GeoHierarchySubGraph & AdvancedCellOpTree::CalcBase::ghsg() const {
 	return m_ghsg;
+}
+
+const liboscar::interface::CQRFromRouting & AdvancedCellOpTree::CalcBase::cqrr() const {
+	return m_cqrr;
 }
 
 sserialize::Static::CellTextCompleter & AdvancedCellOpTree::CalcBase::ctc() {

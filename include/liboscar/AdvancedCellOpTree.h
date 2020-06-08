@@ -2,6 +2,7 @@
 #define LIBOSCAR_ADVANCED_CELL_OP_TREE_H
 #include <liboscar/AdvancedOpTree.h>
 #include <liboscar/CQRFromComplexSpatialQuery.h>
+#include <liboscar/CQRFromRouting.h>
 
 #include <sserialize/spatial/CellQueryResult.h>
 #include <sserialize/Static/CellTextCompleter.h>
@@ -22,17 +23,20 @@ public:
 			const sserialize::Static::CQRDilator & cqrd,
 			const CQRFromComplexSpatialQuery & csq,
 			const sserialize::spatial::GeoHierarchySubGraph & ghsg,
+			const liboscar::interface::CQRFromRouting & cqrr,
 			uint32_t threadCount) :
 		m_ctc(ctc),
 		m_cqrd(cqrd),
 		m_csq(csq),
 		m_ghsg(ghsg),
+		m_cqrr(cqrr),
 		m_threadCount(threadCount)
 		{}
 		sserialize::Static::CellTextCompleter & m_ctc;
 		const sserialize::Static::CQRDilator & m_cqrd;
 		const CQRFromComplexSpatialQuery & m_csq;
 		const sserialize::spatial::GeoHierarchySubGraph & m_ghsg;
+		const liboscar::interface::CQRFromRouting & m_cqrr;
 		uint32_t m_threadCount;
 		
 		const sserialize::Static::ItemIndexStore & idxStore() const;
@@ -40,7 +44,9 @@ public:
 		const sserialize::Static::spatial::GeoHierarchy & gh() const;
 		const liboscar::Static::OsmKeyValueObjectStore & store() const;
 		const sserialize::spatial::GeoHierarchySubGraph & ghsg() const;
+		const liboscar::interface::CQRFromRouting & cqrr() const;
 		sserialize::Static::CellTextCompleter & ctc();
+
 		uint32_t threadCount() const;
 		sserialize::CellQueryResult toCQR(const sserialize::TreedCellQueryResult & cqr) const;
 		sserialize::CellQueryResult calcBetweenOp(const sserialize::CellQueryResult & c1, const sserialize::CellQueryResult & c2);
@@ -53,6 +59,7 @@ public:
 
 		sserialize::ItemIndex calcDilateRegionByItemCoverageOp(double th, const sserialize::CellQueryResult & cqr);
 		sserialize::ItemIndex calcDilateRegionByItemCoverageOp(Node * node, const sserialize::CellQueryResult & cqr);
+
 		static std::vector<double> asDoubles(const std::string & str);
 	};
 
@@ -63,8 +70,9 @@ public:
 			const sserialize::Static::CQRDilator & cqrd,
 			const CQRFromComplexSpatialQuery & csq,
 			const sserialize::spatial::GeoHierarchySubGraph & ghsg,
+			const liboscar::interface::CQRFromRouting & cqrr,
 			uint32_t threadCount) :
-		CalcBase(ctc, cqrd, csq, ghsg, threadCount)
+		CalcBase(ctc, cqrd, csq, ghsg, cqrr, threadCount)
 		{}
 		CQRType calc(Node * node);
 		CQRType calcItem(Node * node);
@@ -73,6 +81,7 @@ public:
 		CQRType calcPolygon(Node * node);
 		CQRType calcPath(Node * node);
 		CQRType calcPoint(Node * node);
+		CQRType calcRoute(Node * node);
 		CQRType calcRegionExclusiveCells(Node * node);
 		CQRType calcRegion(Node * node);
 		CQRType calcCell(Node * node);
@@ -96,7 +105,9 @@ public:
 		const sserialize::Static::CellTextCompleter & ctc,
 		const sserialize::Static::CQRDilator & cqrd,
 		const CQRFromComplexSpatialQuery & csq,
-		const sserialize::spatial::GeoHierarchySubGraph & ghsg);
+		const sserialize::spatial::GeoHierarchySubGraph & ghsg,
+		std::shared_ptr<liboscar::interface::CQRFromRouting> cqrr = liboscar::interface::CQRFromRouting::make_shared<liboscar::impl::CQRFromRoutingNoOp>()
+	);
 	AdvancedCellOpTree(const AdvancedCellOpTree &) = delete;
 	virtual ~AdvancedCellOpTree();
 	AdvancedCellOpTree & operator=(const AdvancedCellOpTree&) = delete;
@@ -111,11 +122,13 @@ public:
 	const sserialize::Static::CQRDilator & cqrd() const { return m_cqrd; }
 	const CQRFromComplexSpatialQuery & csq() const { return m_csq; }
 	const sserialize::spatial::GeoHierarchySubGraph & ghsg() const { return m_ghsg; }
+	const liboscar::interface::CQRFromRouting & cqrr() const { return *m_cqrr; }
 private:
 	sserialize::Static::CellTextCompleter m_ctc;
 	sserialize::Static::CQRDilator m_cqrd;
 	CQRFromComplexSpatialQuery m_csq;
 	sserialize::spatial::GeoHierarchySubGraph m_ghsg;
+	std::shared_ptr<liboscar::interface::CQRFromRouting> m_cqrr;
 };
 
 template<typename T_CQR_TYPE>
@@ -123,7 +136,7 @@ T_CQR_TYPE
 AdvancedCellOpTree::calc(uint32_t threadCount) {
 	typedef T_CQR_TYPE CQRType;
 	if (root()) {
-		Calc<CQRType> calculator(m_ctc, m_cqrd, m_csq, m_ghsg, threadCount);
+		Calc<CQRType> calculator(ctc(), cqrd(), csq(), ghsg(), cqrr(), threadCount);
 		return calculator.calc( root() );
 	}
 	else {
@@ -233,6 +246,33 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcPath(AdvancedCellOpTree::Node* node) {
 		}
 	}
 }
+
+template<typename T_CQR_TYPE>
+T_CQR_TYPE
+AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRoute(AdvancedCellOpTree::Node* node) {
+	std::vector<double> tmp( asDoubles(node->value) );
+	if (tmp.size() < 2+2*2) {
+		return CQRType();
+	}
+	double radius(tmp[0]);
+	int options(tmp[1]);
+	std::vector<sserialize::CellQueryResult> results;
+
+	sserialize::spatial::GeoPoint src(tmp[2], tmp[3], src.NT_WRAP);
+	for(std::size_t i=5, s(tmp.size()); i < s; i += 2) {
+		sserialize::spatial::GeoPoint tgt(tmp[i-1], tmp[i], src.NT_WRAP);
+		results.push_back( cqrr()(src, tgt, options, radius) );
+	}
+	return CQRType(
+		sserialize::treeReduce<std::vector<sserialize::CellQueryResult>::const_iterator, sserialize::CellQueryResult>(
+			results.begin(),
+			results.end(),
+			std::plus<sserialize::CellQueryResult>(),
+			threadCount()
+		)
+	);
+}
+
 
 template<typename T_CQR_TYPE>
 T_CQR_TYPE
@@ -495,6 +535,8 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calc(AdvancedCellOpTree::Node* node) {
 			return calcPoint(node);
 		case Node::ITEM:
 			return calcItem(node);
+		case Node::ROUTE:
+			return calcRoute(node);
 		default:
 			break;
 		};
