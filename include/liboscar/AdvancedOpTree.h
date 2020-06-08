@@ -25,10 +25,11 @@
   * FUNCTION_CALL_PARAMETER_SPEC := ':' [^WHITE_SPACE, ')', '(']* | '(' ['(', ')']* ')'
   * 
   * ITEM := $item:<itemId>
-  * GEO_RECT := $geo:[ACCURACY_DEFINITION]:<rect-defintion>
+  * GEO_RECT := $geo:[ACCURACY_DEFINITION]:<rect-definition>
   * POINT := $point:radius,lat,lon
   * POLYGON := $poly:[ACCURACY_DEFINITION]:[lat,lon]
   * GEO_PATH := $path:radius,[lat,lon]
+  * ROUTE := $route:radius,options,[lat,lon]* | $route(radius, options, [lat, lon]*)
   * REGION := $region:<storeId>
   * REGION_EXCLUSIVE_CELLS := $rec:<storeId>
   * QUERY_EXCLUSIVE_CELLS := $qec:<minDirectParents>:<maxDirectParents>
@@ -50,11 +51,14 @@ struct Node {
 		SET_OP, BETWEEN_OP,
 		QUERY_EXCLUSIVE_CELLS,
 		FUNCTION_CALL,
-		RECT, POLYGON, PATH, POINT,
+		STRING, STRING_ITEM, STRING_REGION,
+
+		//function calls
+		RECT, POLYGON, PATH, POINT, ROUTE,
 		REGION, REGION_EXCLUSIVE_CELLS, CONSTRAINED_REGION_EXCLUSIVE_CELLS,
 		CELL, CELLS,
 		TRIANGLE, TRIANGLES,
-		STRING, ITEM, STRING_ITEM, STRING_REGION
+		ITEM,
 	};
 	int baseType;
 	int subType;
@@ -89,6 +93,12 @@ struct Token {
 		NEAR_OP,
 		SET_OP,
 		FUNCTION_CALL,
+		STRING,
+		STRING_ITEM,
+		STRING_REGION,
+
+		//function calls
+		ITEM,
 		GEO_RECT,
 		GEO_POLYGON,
 		GEO_PATH,
@@ -101,11 +111,7 @@ struct Token {
 		CELLS,
 		TRIANGLE,
 		TRIANGLES,
-		STRING,
-		ITEM,
-		STRING_ITEM,
-		STRING_REGION
-		
+		ROUTE
 	};
 	int type;
 	std::string value;

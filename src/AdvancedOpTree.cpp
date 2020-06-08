@@ -264,6 +264,9 @@ Token Tokenizer::next() {
 			else if (tmp == "point") {
 				t.type = Token::GEO_POINT;
 			}
+			else if (tmp == "route") {
+				t.type = Token::ROUTE;
+			}
 			if (bracedParameterList) {
 				std::size_t braceCount = 1;
 				for(; m_state.it != m_state.end && braceCount; ++m_state.it) {
@@ -548,6 +551,12 @@ detail::AdvancedOpTree::Node* Parser::parseSingleQ() {
 	{
 		pop();
 		return new Node(Node::LEAF, Node::POLYGON, t.value);
+		break;
+	}
+	case Token::ROUTE:
+	{
+		pop();
+		return new Node(Node::LEAF, Node::ROUTE, t.value);
 		break;
 	}
 	case Token::STRING:
