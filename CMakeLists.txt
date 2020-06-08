@@ -66,6 +66,7 @@ set(LIBOSCAR_SOURCES_CPP
 	src/KVstats.cpp
 	src/KVClustering.cpp
 	src/KoMaClustering.cpp
+	src/CQRFromRouting.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC
