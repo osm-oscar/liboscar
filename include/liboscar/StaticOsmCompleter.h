@@ -8,6 +8,7 @@
 #include <liboscar/tagcompleters.h>
 #include <liboscar/TextSearch.h>
 #include <liboscar/GeoSearch.h>
+#include <liboscar/CQRFromRouting.h>
 #include <sserialize/spatial/CellDistance.h>
 #include <sserialize/Static/CellTextCompleter.h>
 #include <sserialize/search/GeoCompleter.h>
@@ -42,6 +43,7 @@ private:
 	sserialize::spatial::GeoHierarchySubGraph m_ghsg;
 	std::shared_ptr<sserialize::spatial::interface::CellDistance> m_cellDistance;
 	sserialize::Static::CQRDilator m_cqrd;
+	std::shared_ptr<liboscar::interface::CQRFromRouting> m_cqrr;
 	
 private:
 	sserialize::RCPtrWrapper<TagCompleter> m_tagCompleter;
@@ -80,12 +82,15 @@ public:
 	inline const sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter> & geoCompleter() const { return m_geoCompleters.at(m_selectedGeoCompleter); }
 	inline sserialize::RCPtrWrapper<sserialize::SetOpTree::SelectableOpFilter> & geoCompleter() { return m_geoCompleters.at(m_selectedGeoCompleter); }
 	inline const sserialize::Static::CQRDilator & cqrd() const { return m_cqrd; }
+	inline std::shared_ptr<liboscar::interface::CQRFromRouting> const & cqrr() const { return m_cqrr; }
 	
 	bool setTextSearcher(TextSearch::Type t, uint8_t pos);
 	bool setGeoCompleter(uint8_t pos);
 	void setCellDistance(CellDistanceType cdt, uint32_t threadCount);
 	///@param threshold in meter
 	void setCQRDilatorCache(uint32_t threshold, uint32_t threadCount);
+
+	void setCQRFromRouting(std::shared_ptr<liboscar::interface::CQRFromRouting> v);
 	
 	inline uint8_t selectedGeoCompleter() { return m_selectedGeoCompleter; }
 	inline uint8_t selectedTextSearcher(TextSearch::Type t) { return m_textSearch.selectedTextSearcher(t); }

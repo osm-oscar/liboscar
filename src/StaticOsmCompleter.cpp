@@ -116,6 +116,10 @@ bool OsmCompleter::setTextSearcher(TextSearch::Type t, uint8_t pos) {
 	return m_textSearch.select(t, pos);
 }
 
+void OsmCompleter::setCQRFromRouting(std::shared_ptr<liboscar::interface::CQRFromRouting> v) {
+	m_cqrr = v;
+}
+
 sserialize::StringCompleter OsmCompleter::getItemsCompleter() const {
 	sserialize::StringCompleter strCmp;
 	if (m_data.count(FC_TAGSTORE)) {
@@ -321,6 +325,16 @@ void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsg
 	m_ghsg = sserialize::spatial::GeoHierarchySubGraph(m_store.geoHierarchy(), indexStore(), ghsgType);
 	
 	setCellDistance(CDT_CENTER_OF_MASS, 1);
+
+	if (!m_cqrr) {
+		m_cqrr = liboscar::adaptors::CQRFromRoutingFromCellList::make_shared(
+			indexStore(),
+			sserialize::Static::spatial::GeoHierarchyCellInfo::makeRc(store().geoHierarchy()),
+			[this](sserialize::spatial::GeoPoint const & src, sserialize::spatial::GeoPoint const & tgt, int, double radius) -> sserialize::ItemIndex {
+				return this->store().regionArrangement().cellsBetween(src, tgt, radius);
+			}
+		);
+	}
 }
 
 void processCompletionToken(std::string & q, sserialize::StringCompleter::QuerryType & qt) {
@@ -346,12 +360,12 @@ OsmCompleter::cqrComplete(
 	CQRFromPolygon cqrfp(store(), indexStore());
 	CQRFromComplexSpatialQuery csq(ghsg, cqrfp);
 	if (!treedCQR) {
-		AdvancedCellOpTree opTree(cmp, cqrd(), csq, ghsg);
+		AdvancedCellOpTree opTree(cmp, cqrd(), csq, ghsg, cqrr());
 		opTree.parse(query);
 		return opTree.calc<sserialize::CellQueryResult>();
 	}
 	else {
-		AdvancedCellOpTree opTree(cmp, cqrd(), csq, ghsg);
+		AdvancedCellOpTree opTree(cmp, cqrd(), csq, ghsg, cqrr());
 		opTree.parse(query);
 		return opTree.calc<sserialize::TreedCellQueryResult>(threadCount).toCQR(threadCount);
 	}
