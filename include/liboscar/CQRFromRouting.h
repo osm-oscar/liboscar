@@ -53,14 +53,15 @@ public:
 	>
 	make_unique(TArgs... args) { return std::make_unique<TSubClass>(std::forward<TArgs>(args)...); }
 public:
-    CQRFromRouting() {}
-    virtual ~CQRFromRouting() {}
-public:
     inline CellQueryResult operator()(sserialize::spatial::GeoPoint const & source, sserialize::spatial::GeoPoint const & target, int flags, double radius) const {
         return cqr(source, target, flags, radius);
     }
 public:
     virtual CellQueryResult cqr(sserialize::spatial::GeoPoint const & source, sserialize::spatial::GeoPoint const & target, int flags, double radius) const = 0;
+protected:
+    CQRFromRouting() {}
+    virtual ~CQRFromRouting() {}
+
 };
 
 } //end namespace liboscar::interface
@@ -76,11 +77,14 @@ public:
     inline static auto make_shared(CellQueryResult::ItemIndexStore const & idxStore, CellQueryResult::CellInfo const & cellInfo, Operator op) {
         return MyBaseClass::make_shared<Self>(idxStore, cellInfo, op);
     }
-public:
-    CQRFromRoutingFromCellList(CellQueryResult::ItemIndexStore const & idxStore, CellQueryResult::CellInfo const & cellInfo, Operator op);
-    ~CQRFromRoutingFromCellList() {}
+    inline static auto make_unique(CellQueryResult::ItemIndexStore const & idxStore, CellQueryResult::CellInfo const & cellInfo, Operator op) {
+        return MyBaseClass::make_unique<Self>(idxStore, cellInfo, op);
+    }
 public:
     CellQueryResult cqr(sserialize::spatial::GeoPoint const & source, sserialize::spatial::GeoPoint const & target, int flags, double radius) const override;
+public:
+    CQRFromRoutingFromCellList(CellQueryResult::ItemIndexStore const & idxStore, CellQueryResult::CellInfo const & cellInfo, Operator op);
+    ~CQRFromRoutingFromCellList() override {}
 private:
     CellQueryResult::ItemIndexStore m_idxStore;
     CellQueryResult::CellInfo m_ci;
@@ -97,11 +101,12 @@ public:
     using MyBaseClass = liboscar::interface::CQRFromRouting;
 public:
     inline static auto make_shared() { return MyBaseClass::make_shared<Self>(); }
+    inline static auto make_unique() { return MyBaseClass::make_unique<Self>(); }
+public:
+    CellQueryResult cqr(sserialize::spatial::GeoPoint const & source, sserialize::spatial::GeoPoint const & target, int flags, double radius) const override;
 public:
     CQRFromRoutingNoOp() {}
     ~CQRFromRoutingNoOp() override {}
-public:
-    virtual CellQueryResult cqr(sserialize::spatial::GeoPoint const & source, sserialize::spatial::GeoPoint const & target, int flags, double radius) const;
 };
 
 } //end namespace liboscar
