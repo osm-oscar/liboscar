@@ -372,6 +372,13 @@ OsmCompleter::cqrComplete(
 }
 
 sserialize::CellQueryResult
+OsmCompleter::cqr(sserialize::ItemIndex const & fullMatchCells) const {
+	auto idxStore = indexStore();
+	auto ci = sserialize::Static::spatial::GeoHierarchyCellInfo::makeRc(store().geoHierarchy());
+	return sserialize::CellQueryResult(fullMatchCells, ci, idxStore, sserialize::CellQueryResult::FF_CELL_GLOBAL_ITEM_IDS);
+}
+
+sserialize::CellQueryResult
 OsmCompleter::cqrComplete(
 	const std::string& query,
 	bool treedCQR,
