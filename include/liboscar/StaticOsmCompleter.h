@@ -91,6 +91,7 @@ public:
 	void setCQRDilatorCache(uint32_t threshold, uint32_t threadCount);
 
 	void setCQRFromRouting(std::shared_ptr<liboscar::interface::CQRFromRouting> v);
+	void setCQRFromRouting(liboscar::adaptors::CQRFromRoutingFromCellList::Operator v);
 	
 	inline uint8_t selectedGeoCompleter() { return m_selectedGeoCompleter; }
 	inline uint8_t selectedTextSearcher(TextSearch::Type t) { return m_textSearch.selectedTextSearcher(t); }

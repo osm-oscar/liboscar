@@ -120,6 +120,11 @@ void OsmCompleter::setCQRFromRouting(std::shared_ptr<liboscar::interface::CQRFro
 	m_cqrr = v;
 }
 
+void OsmCompleter::setCQRFromRouting(liboscar::adaptors::CQRFromRoutingFromCellList::Operator v) {
+	auto ci = sserialize::Static::spatial::GeoHierarchyCellInfo::makeRc(store().geoHierarchy());
+	setCQRFromRouting(liboscar::adaptors::CQRFromRoutingFromCellList::make_shared(indexStore(), ci, v));
+}
+
 sserialize::StringCompleter OsmCompleter::getItemsCompleter() const {
 	sserialize::StringCompleter strCmp;
 	if (m_data.count(FC_TAGSTORE)) {
