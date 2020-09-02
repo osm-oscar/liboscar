@@ -258,10 +258,10 @@ AdvancedCellOpTree::Calc<T_CQR_TYPE>::calcRoute(AdvancedCellOpTree::Node* node) 
 	int options(tmp[1]);
 	std::vector<sserialize::CellQueryResult> results;
 
-	sserialize::spatial::GeoPoint src(tmp[2], tmp[3], src.NT_WRAP);
-	for(std::size_t i=5, s(tmp.size()); i < s; i += 2) {
-		sserialize::spatial::GeoPoint tgt(tmp[i-1], tmp[i], src.NT_WRAP);
-		results.push_back( cqrr()(src, tgt, options, radius) );
+	for(std::size_t i=4, s(tmp.size()); i < s - 1; i+=2) {
+         	sserialize::spatial::GeoPoint src(tmp[i-2], tmp[i-1], src.NT_WRAP);
+         	sserialize::spatial::GeoPoint tgt(tmp[i], tmp[i + 1], tgt.NT_WRAP);
+          	results.push_back( cqrr()(src, tgt, options, radius) );
 	}
 	return CQRType(
 		sserialize::treeReduce<std::vector<sserialize::CellQueryResult>::const_iterator, sserialize::CellQueryResult>(
