@@ -1,5 +1,12 @@
 #include <liboscar/CQRFromRouting.h>
 
+namespace liboscar::interface {
+	
+CQRFromRouting::CQRFromRouting() {}
+CQRFromRouting::~CQRFromRouting() {}
+	
+} //end namespace liboscar::interface
+
 namespace liboscar::adaptors {
 
 CQRFromRoutingFromCellList::CQRFromRoutingFromCellList(CellQueryResult::ItemIndexStore const & idxStore, CellQueryResult::CellInfo const & cellInfo, Operator op) :
@@ -7,6 +14,8 @@ m_idxStore(idxStore),
 m_ci(cellInfo),
 m_op(op)
 {}
+
+CQRFromRoutingFromCellList::~CQRFromRoutingFromCellList() {}
 
 CQRFromRoutingFromCellList::CellQueryResult
 CQRFromRoutingFromCellList::cqr(sserialize::spatial::GeoPoint const & source, sserialize::spatial::GeoPoint const & target, int flags, double radius) const {

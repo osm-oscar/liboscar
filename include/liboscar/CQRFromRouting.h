@@ -59,8 +59,8 @@ public:
 public:
     virtual CellQueryResult cqr(sserialize::spatial::GeoPoint const & source, sserialize::spatial::GeoPoint const & target, int flags, double radius) const = 0;
 protected:
-    CQRFromRouting() {}
-    virtual ~CQRFromRouting() {}
+    CQRFromRouting();
+    virtual ~CQRFromRouting();
 
 };
 
@@ -84,7 +84,7 @@ public:
     CellQueryResult cqr(sserialize::spatial::GeoPoint const & source, sserialize::spatial::GeoPoint const & target, int flags, double radius) const override;
 public:
     CQRFromRoutingFromCellList(CellQueryResult::ItemIndexStore const & idxStore, CellQueryResult::CellInfo const & cellInfo, Operator op);
-    ~CQRFromRoutingFromCellList() override {}
+    ~CQRFromRoutingFromCellList() override;
 private:
     CellQueryResult::ItemIndexStore m_idxStore;
     CellQueryResult::CellInfo m_ci;
