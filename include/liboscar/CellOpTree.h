@@ -115,7 +115,7 @@ T_CQR_TYPE CellOpTreeImp<T_CQR_TYPE>::qc(const std::string & str) {
 					MyOut & operator++() { return *this; }
 					MyOut & operator*() { return *this; }
 					MyOut & operator=(const std::string & str) {
-						double t = atof(str.c_str());
+						double t = sserialize::toDouble(str);
 						dest->push_back(t);
 						return *this;
 					}
