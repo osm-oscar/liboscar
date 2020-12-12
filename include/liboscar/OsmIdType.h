@@ -18,6 +18,7 @@ public:
 	OsmIdType(const OsmIdType & other) : m_d(other.m_d) {}
 	~OsmIdType() {}
 	OsmIdType & operator=(OsmIdType const&) = default;
+	inline bool valid() const { return type() != liboscar::OSMIT_INVALID; }
 	inline const int64_t & raw() const { return m_d; }
 	inline int64_t & raw() { return m_d; }
 	inline int64_t id() const { return m_d >> 2; }
@@ -44,6 +45,10 @@ inline sserialize::UByteArrayAdapter & operator<<(sserialize::UByteArrayAdapter 
 inline sserialize::UByteArrayAdapter & operator>>(sserialize::UByteArrayAdapter & dest, OsmIdType & src) {
 	src.raw() = dest.getVlPackedInt64();
 	return dest;
+}
+
+inline std::ostream & operator<<(std::ostream & out, OsmIdType const & src) {
+	return out << "osmId=" << src.id() << ", type=" << int(src.type());
 }
 
 }//end namespace liboscar
