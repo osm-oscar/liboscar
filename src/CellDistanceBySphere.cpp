@@ -79,8 +79,8 @@ CellDistanceBySphere::minSpheres(const TriangulationGeoHierarchyArrangement & tr
 			cgalpts.clear();
 			state->tra.cfGraph(cellId).visitCB([this, cellId](const auto & face) {
 				for (uint32_t j(0); j < 3; ++j) {
-					uint32_t nId = face.neighborId(j);
-					uint32_t ncId = state->tra.cellIdFromFaceId(nId);
+					auto nId = face.neighborId(j);
+					auto ncId = state->tra.cellIdFromFaceId(nId);
 					if (ncId != cellId) { //only insert points of border edges
 						pts.emplace( face.point( state->tra.tds().ccw(j) ) );
 						pts.emplace( face.point( state->tra.tds().cw(j) ) );
@@ -163,8 +163,8 @@ CellDistanceBySphere::spheres(const TriangulationGeoHierarchyArrangement & tra, 
 			pts.clear();
 			state->tra.cfGraph(cellId).visitCB([this, cellId](const auto & face) {
 				for (uint32_t j(0); j < 3; ++j) {
-					uint32_t nId = face.neighborId(j);
-					uint32_t ncId = state->tra.cellIdFromFaceId(nId);
+					auto nId = face.neighborId(j);
+					auto ncId = state->tra.cellIdFromFaceId(nId);
 					if (ncId != cellId) { //only insert points of border edges
 						pts.emplace( face.point( state->tra.tds().ccw(j) ) );
 						pts.emplace( face.point( state->tra.tds().cw(j) ) );
