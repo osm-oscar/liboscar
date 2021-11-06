@@ -199,6 +199,7 @@ OsmItemSetIterator OsmCompleter::partialComplete(const std::string & query, cons
 }
 
 void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsgType) {
+	using OpenFlags = sserialize::UByteArrayAdapter::OpenFlags;
 	#ifdef __LP64__
 	//use up to 1 TiB of address space on 64 Bit machines
 	uint64_t maxFullMmapSize = uint64_t(1024*1024)*uint64_t(1024*1024);
@@ -208,18 +209,23 @@ void OsmCompleter::energize(sserialize::spatial::GeoHierarchySubGraph::Type ghsg
 	#endif
 	
 	for(uint32_t i = FC_BEGIN; i < FC_END; ++i) {
+		OpenFlags flags;
 		bool cmp;
 		std::string fn;
 		if (fileNameFromPrefix(m_filesDir, (FileConfig)i, fn, cmp)) {
 			uint64_t fileSize = sserialize::MmappedFile::fileSize(fn);
 			
+			if (cmp) {
+				flags |= OpenFlags::Compressed();
+			}
+			
 			if (fileSize >= maxFullMmapSize) {
-				m_data[i] = sserialize::UByteArrayAdapter::openRo(fn, cmp, 0, 0);
+				flags |= OpenFlags::Chunked();
 			}
 			else {
-				m_data[i] = sserialize::UByteArrayAdapter::openRo(fn, cmp, maxFullMmapSize, 0);
 				maxFullMmapSize -= fileSize;
 			}
+			m_data[i] = sserialize::UByteArrayAdapter::open(fn, flags);
 		}
 	}
 
